@@ -74,11 +74,23 @@
   @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
   /* ---------- stats ---------- */
-  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
   .stat{
     flex:1;min-width:140px;background:var(--card);border:1px solid var(--line);
     border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;
   }
+  /* 累计 / 本月 两张统计卡：左侧小标签 + 右侧两行数字 */
+  .stat-wide{gap:14px;padding:12px 16px;}
+  .stat-tag{
+    font-family:var(--hand);font-size:13px;color:var(--ink-soft);flex:none;
+    padding:4px 9px;border-radius:8px;background:#f1f2f5;letter-spacing:.5px;
+  }
+  .stat-wide .stat-tag{color:var(--accent);background:var(--accent-soft);}
+  .stats .stat:nth-child(2) .stat-tag{color:var(--green);background:var(--green-soft);}
+  .stat-lines{display:flex;flex-direction:column;gap:1px;line-height:1.15;}
+  .stat-lines div{display:flex;align-items:baseline;gap:4px;}
+  .stat-lines b{font-size:21px;font-weight:600;letter-spacing:.3px;}
+  .stat-lines i{font-style:normal;font-size:11.5px;color:var(--ink-soft);letter-spacing:.4px;}
   .stat .ico{font-family:var(--hand);font-size:22px;width:38px;height:38px;border-radius:10px;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .stat b{font-size:20px;display:block;line-height:1.1;}
@@ -436,11 +448,11 @@
   main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
   /* 食历视图铺满剩余高度：一屏看完整个月历 */
   #view-cal.on{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-  #view-cal .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:7px;}
-  #view-cal .stat{min-width:0;padding:6px 8px;gap:6px;border-radius:11px;}
-  #view-cal .stat .ico{width:22px;height:22px;font-size:11px;border-radius:6px;}
-  #view-cal .stat b{font-size:15px;}
-  #view-cal .stat span{font-size:9.5px;line-height:1.15;display:block;}
+  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px;}
+  #view-cal .stat{min-width:0;padding:6px 9px;gap:8px;border-radius:11px;}
+  #view-cal .stat-tag{font-size:11px;padding:3px 7px;border-radius:6px;}
+  #view-cal .stat-lines b{font-size:17px;}
+  #view-cal .stat-lines i{font-size:9.5px;}
   #view-cal .cal-card{flex:1;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
   #view-cal .cal-head{margin-bottom:5px;}
   #view-cal .cal-title{font-size:15px;}
@@ -918,14 +930,23 @@ const todayStr=()=>{const t=new Date();return dstr(t.getFullYear(),t.getMonth(),
 function renderStats(){
   const days=new Set(db.map(r=>r.date));
   const thisM=todayStr().slice(0,7);
-  const mDays=new Set(db.filter(r=>r.date.startsWith(thisM)).map(r=>r.date));
+  const mRecs=db.filter(r=>r.date.startsWith(thisM));
+  const mDays=new Set(mRecs.map(r=>r.date));
   document.getElementById('stats').innerHTML=`
-    <div class="stat"><div class="ico" style="background:var(--accent-soft);color:var(--accent)">记</div>
-      <div><b>${db.length}</b><span>累计餐次记录</span></div></div>
-    <div class="stat"><div class="ico" style="background:var(--green-soft);color:var(--green)">天</div>
-      <div><b>${days.size}</b><span>认真吃饭的日子</span></div></div>
-    <div class="stat"><div class="ico" style="background:var(--blue-soft);color:var(--blue)">月</div>
-      <div><b>${mDays.size}</b><span>本月记录天数</span></div></div>`;
+    <div class="stat stat-wide">
+      <div class="stat-tag">累计</div>
+      <div class="stat-lines">
+        <div><b>${db.length}</b><i>meals</i></div>
+        <div><b>${days.size}</b><i>days</i></div>
+      </div>
+    </div>
+    <div class="stat stat-wide">
+      <div class="stat-tag">本月</div>
+      <div class="stat-lines">
+        <div><b>${mRecs.length}</b><i>meals</i></div>
+        <div><b>${mDays.size}</b><i>days</i></div>
+      </div>
+    </div>`;
 }
 function dayText(r){
   if(r.dishes)return r.dishes;
