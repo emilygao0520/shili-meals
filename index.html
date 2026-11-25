@@ -641,7 +641,7 @@ async function sha256(s){
 }
 
 /* ================= 数据层 ================= */
-const KEY='shili_meals_v1', SKEY='shili_session_v1', PKEY='shili_posts_v1', MKEY='shili_migrated_v1';
+const KEY='shili_meals_v1', SKEY='shili_session_v1', PKEY='shili_posts_v1', MKEY='shili_migrated_v1', UKEY='shili_profile_v1';
 const MEALS=[
   {k:'b',name:'早餐',ph:'如：楼下的豆浆油条铺'},
   {k:'l',name:'午餐',ph:'如：公司附近的面馆'},
@@ -653,6 +653,8 @@ let curProfile=null;
 let posts=JSON.parse(localStorage.getItem(PKEY)||'null')||[];
 function save(){localStorage.setItem(KEY,JSON.stringify(db));}
 function savePostsCache(){localStorage.setItem(PKEY,JSON.stringify(posts));}
+/* 档案本地缓存：刷新后立即恢复登录态显示，无需等云端 */
+function cacheProfile(p){if(p)localStorage.setItem(UKEY,JSON.stringify(p));}
 function loadLocalDb(){
   let d=JSON.parse(localStorage.getItem(KEY)||'null');
   if(!d){d=seedDemo();save();}
@@ -818,14 +820,27 @@ async function refreshPosts(silent){
 async function loadCloudData(){
   if(!curPhone)return;
   try{
-    const rows=await sbJson('GET','/records?phone=eq.'+curPhone);
+    let rows;
+    try{
+      rows=await sbJson('GET','/records?phone=eq.'+curPhone);
+    }catch(e){
+      /* 网络抖动自动重试一次 */
+      await new Promise(r=>setTimeout(r,1500));
+      rows=await sbJson('GET','/records?phone=eq.'+curPhone);
+    }
     db=rows.map(rowToRec);
+    save();  /* 写入本机缓存：刷新/短暂断网时立即显示 */
   }catch(e){
-    db=[];
-    toast('云端食历加载失败，请检查网络');
-    renderCal();
-    return;
+    if(!db.length)toast('云端加载失败，请检查网络');
   }
+  /* 档案云端校准（后台执行，不阻塞记录显示） */
+  try{
+    const us=await sbJson('GET','/users?phone=eq.'+curPhone+'&select=phone,profile');
+    if(us&&us.length){
+      curProfile=Object.assign({phone:curPhone},us[0].profile||{});
+      cacheProfile(curProfile);syncAuth();
+    }
+  }catch(e){}
   /* 一次性迁移：把本机旧记录合并进云端账号 */
   const local=JSON.parse(localStorage.getItem(KEY)||'null');
   if(!localStorage.getItem(MKEY)&&local&&local.length){
@@ -1340,6 +1355,7 @@ document.getElementById('doLogin').onclick=async function(){
       }
       curPhone=phone;localStorage.setItem(SKEY,phone);
       curProfile=Object.assign({phone:phone},rows[0].profile||{});
+      cacheProfile(curProfile);
       authOverlay.classList.remove('on');
       syncAuth();
       btn.disabled=false;btn.textContent='登录 / 注册';
@@ -1385,7 +1401,7 @@ document.getElementById('doRegister').onclick=async function(){
     /* 编辑资料模式：只更新档案 */
     try{
       await sbReq('PATCH','/users?phone=eq.'+pendingReg.phone,{profile:profile});
-      curProfile=profile;
+      curProfile=profile;cacheProfile(curProfile);
       btn.disabled=false;btn.textContent='完成注册，开始记录';
       pendingReg=null;
       authOverlay.classList.remove('on');
@@ -1405,7 +1421,7 @@ document.getElementById('doRegister').onclick=async function(){
       {phone:pendingReg.phone,password_hash:pendingReg.hash,profile:profile},
       {'Prefer':'return=minimal'});
     curPhone=pendingReg.phone;localStorage.setItem(SKEY,curPhone);
-    curProfile=profile;
+    curProfile=profile;cacheProfile(curProfile);
     authOverlay.classList.remove('on');
     syncAuth();
     btn.disabled=false;btn.textContent='完成注册，开始记录';
@@ -1469,7 +1485,7 @@ function renderProfile(){
 }
 document.getElementById('logoutBtn').onclick=()=>{
   if(!confirm('退出登录后，记录仍安全保存在云端，下次登录同一手机号即可找回。确定退出吗？'))return;
-  curPhone=null;curProfile=null;localStorage.removeItem(SKEY);
+  curPhone=null;curProfile=null;localStorage.removeItem(SKEY);localStorage.removeItem(UKEY);
   document.getElementById('profileOverlay').classList.remove('on');
   db=loadLocalDb();
   syncAuth();renderCal();renderFeed();
@@ -1507,8 +1523,11 @@ document.getElementById('clearAll').onclick=async ()=>{
 /* ================= 启动 ================= */
 (function boot(){
   if(curPhone){
-    /* 有登录态：先渲染空日历，异步拉取云端数据 */
-    db=[];
+    /* 有登录态：先从本机缓存立即恢复（档案+记录，秒显），再异步校准云端 */
+    try{curProfile=JSON.parse(localStorage.getItem(UKEY)||'null');}catch(e){curProfile=null;}
+    let cached=null;
+    try{cached=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+    db=Array.isArray(cached)?cached:[];
     syncAuth();renderCal();
     loadCloudData();
     refreshPosts(false);
