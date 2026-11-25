@@ -101,7 +101,7 @@
   .cal-week div{text-align:center;font-size:12px;color:var(--ink-soft);padding-bottom:4px;}
   .cal-week div:first-child{color:var(--pink);}
   .day{
-    min-height:112px;background:#fff;border:1px solid var(--line);border-radius:12px;
+    min-height:126px;background:#fff;border:1px solid var(--line);border-radius:12px;
     padding:6px 5px 5px;cursor:pointer;position:relative;transition:.15s;
     display:flex;flex-direction:column;gap:2px;overflow:hidden;
   }
@@ -119,8 +119,9 @@
     box-shadow:0 1px 2px rgba(0,0,0,.1);
   }
   .day .zone .zt{
-    font-family:var(--hand);font-size:10.5px;color:var(--ink-soft);line-height:1.3;
-    width:100%;text-align:center;padding:0 1px;word-break:break-word;overflow:hidden;
+    font-family:var(--hand);font-size:10.5px;color:#555b64;line-height:1.3;
+    width:100%;text-align:center;padding:1px 3px;word-break:break-word;overflow:hidden;
+    background:rgba(240,242,245,.92);border-radius:5px;
     display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
   }
   .day .tape{
@@ -266,6 +267,8 @@
     position:fixed;inset:0;background:rgba(44,46,54,.45);display:none;
     align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto;
   }
+  /* 未保存提醒：小卡片居中显示 */
+  #unsavedOverlay{align-items:center;padding:16px;}
   .overlay.on{display:flex;}
   .overlay.full{
     background:
@@ -428,11 +431,12 @@
   .stat{min-width:100%;padding:11px 14px;}
   .stat b{font-size:17px;}
   .cal-card{padding:14px 10px;}
-  .day{min-height:92px;padding:4px 4px 4px;}
+  .day{min-height:118px;padding:4px 4px 4px;}
   .day .num{font-size:11px;}
-  .day .zone .zt{font-size:9.5px;line-height:1.25;}
+  .day .zone .zt{font-size:9.5px;line-height:1.25;padding:1px 2px;}
   .day .zone .th{border-radius:5px;}
   .cal-week,.cal-grid{gap:3px;}
+  .cal-title small{display:block;font-size:11px;margin-top:3px;}
   .cal-title{font-size:18px;}
   .cal-nav button{width:30px;height:30px;}
   .rank-card{padding:14px;}
@@ -684,7 +688,8 @@ function curUser(){return curProfile;}
 function uidOf(){return curPhone||'guest';}
 function nickOf(){
   const u=curUser();
-  return u?u.nickname:'游客食客';
+  const n=u&&u.nickname?String(u.nickname).trim():'';
+  return n||'游客食客';
 }
 /* 头像配色 */
 const AV_PAIRS=[['#e3b49e','#cf7a70'],['#b5cdb4','#84a98f'],['#b8c6d8','#8399b6'],['#dfb2a4','#c37f70'],['#cabdd3','#9c86ab'],['#dfcda6','#c2a36e']];
@@ -917,16 +922,17 @@ function fitCellTexts(root){
     const zone=t.parentElement;
     const h=zone.clientHeight;
     if(!h)return;
+    const pad=2;                    /* 文字块上下内边距合计 */
     let fs=parseFloat(getComputedStyle(t).fontSize)||10.5;
     let lh=fs*1.3;
-    let lines=Math.max(1,Math.floor((h-1)/lh));
+    let lines=Math.max(1,Math.floor((h-pad-1)/lh));
     let guard=0;
-    while(lines===1&&lh>h-1&&fs>7.5&&guard++<10){
-      fs-=0.5;lh=fs*1.3;lines=Math.max(1,Math.floor((h-1)/lh));
+    while(lines===1&&lh>h-pad-1&&fs>7.5&&guard++<10){
+      fs-=0.5;lh=fs*1.3;lines=Math.max(1,Math.floor((h-pad-1)/lh));
     }
     t.style.fontSize=fs+'px';
     t.style.lineHeight=lh+'px';
-    t.style.maxHeight=(lines*lh)+'px';
+    t.style.maxHeight=(lines*lh+pad)+'px';
     t.style.webkitLineClamp=lines;
   });
 }
@@ -1514,9 +1520,10 @@ function syncAuth(){
   const btn=document.getElementById('avatarBtn');
   const u=curUser();
   if(u){
+    const nm=(u.nickname&&String(u.nickname).trim())||'食客';
     btn.classList.remove('guest');
-    btn.style.cssText=avatarStyle(u.nickname);
-    btn.textContent=u.nickname[0];
+    btn.style.cssText=avatarStyle(u.nickname||nm);
+    btn.textContent=nm[0];
   }else{
     btn.classList.add('guest');
     btn.style.cssText='';
