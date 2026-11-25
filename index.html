@@ -57,6 +57,7 @@
   .tabs button{
     border:none;background:transparent;padding:9px 20px;border-radius:10px;
     font-size:14px;color:var(--ink-soft);cursor:pointer;transition:.2s;font-family:inherit;
+    white-space:nowrap;
   }
   .tabs button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow);font-weight:600;}
   .avatar-btn{
@@ -420,25 +421,41 @@
 <style>
 /* ===== 手机端适配 ===== */
 @media(max-width:640px){
-  header{padding:16px 14px 0;}
-  .brand h1{font-size:20px;}
-  .brand p{font-size:10px;}
-  .brand-mark{width:36px;height:36px;font-size:20px;}
-  main{padding:14px 12px 40px;}
-  .tabs{padding:4px;}
-  .tabs button{padding:7px 12px;font-size:12px;}
-  .avatar-btn{width:34px;height:34px;font-size:14px;}
-  .stat{min-width:100%;padding:11px 14px;}
-  .stat b{font-size:17px;}
-  .cal-card{padding:14px 10px;}
-  .day{min-height:118px;padding:4px 4px 4px;}
-  .day .num{font-size:11px;}
-  .day .zone .zt{font-size:9.5px;line-height:1.25;padding:1px 2px;}
-  .day .zone .th{border-radius:5px;}
-  .cal-week,.cal-grid{gap:3px;}
-  .cal-title small{display:block;font-size:11px;margin-top:3px;}
-  .cal-title{font-size:18px;}
-  .cal-nav button{width:30px;height:30px;}
+  html,body{height:100%;}
+  body{display:flex;flex-direction:column;overflow:hidden;}
+  header{padding:10px 13px 4px;gap:8px;flex-wrap:nowrap;align-items:center;}
+  .brand{gap:8px;min-width:0;flex:1;}
+  .brand h1{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .brand .bsub{display:none;}
+  .brand p{display:none;}
+  .brand-mark{width:30px;height:30px;font-size:16px;border-radius:9px;}
+  .hdr-right{gap:6px;flex:none;}
+  .tabs{padding:3px;}
+  .tabs button{padding:5px 9px;font-size:12px;}
+  .avatar-btn{width:30px;height:30px;font-size:13px;}
+  main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
+  /* 食历视图铺满剩余高度：一屏看完整个月历 */
+  #view-cal.on{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+  #view-cal .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:7px;}
+  #view-cal .stat{min-width:0;padding:6px 8px;gap:6px;border-radius:11px;}
+  #view-cal .stat .ico{width:22px;height:22px;font-size:11px;border-radius:6px;}
+  #view-cal .stat b{font-size:15px;}
+  #view-cal .stat span{font-size:9.5px;line-height:1.15;display:block;}
+  #view-cal .cal-card{flex:1;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
+  #view-cal .cal-head{margin-bottom:5px;}
+  #view-cal .cal-title{font-size:15px;}
+  #view-cal .cal-title small{display:none;}
+  #view-cal .cal-nav{gap:5px;}
+  #view-cal .cal-nav button{width:26px;height:26px;font-size:13px;border-radius:8px;}
+  #view-cal .cal-nav button#todayBtn{height:26px;font-size:11px;padding:0 9px;}
+  #view-cal .cal-week{gap:3px;}
+  #view-cal .cal-week div{font-size:10px;padding-bottom:2px;}
+  #view-cal .cal-grid{flex:1;min-height:0;grid-auto-rows:1fr;gap:3px;}
+  #view-cal .day{min-height:0;padding:3px;border-radius:9px;}
+  #view-cal .day .num{font-size:10px;line-height:1;padding-left:1px;}
+  #view-cal .day .zone .zt{font-size:9px;line-height:1.2;padding:0 1px;}
+  #view-cal .day .zone .th{border-radius:4px;}
+  #view-cal .day .tape{width:24px;height:10px;left:9px;top:-5px;}
   .rank-card{padding:14px;}
   .modal{padding:18px 14px;}
   .composer,.post{padding:14px;}
@@ -452,7 +469,7 @@
   <div class="brand">
     <div class="brand-mark">食</div>
     <div>
-      <h1>食历 · 三餐手账</h1>
+      <h1>食历<span class="bsub"> · 三餐手账</span></h1>
       <p>记录每一餐，珍藏每一份烟火气</p>
     </div>
   </div>
