@@ -128,8 +128,6 @@
   }
   .day .tape.g{background:rgba(111,160,132,.28);}
   .day .tape.p{background:rgba(217,99,94,.22);}
-  .legend{display:flex;gap:14px;justify-content:center;margin-top:14px;font-size:12px;color:var(--ink-soft);flex-wrap:wrap;}
-  .legend i{font-style:normal;font-family:var(--hand);padding:2px 7px;border-radius:5px;margin-right:4px;color:#fff;font-size:11px;}
 
   /* ---------- ranking ---------- */
   .period-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
@@ -305,6 +303,19 @@
   }
   .meal-block input:focus,.meal-block textarea:focus{border-color:var(--accent);background:#fff;}
   .meal-block textarea{grid-column:1/-1;resize:vertical;min-height:52px;line-height:1.5;}
+  /* 输入联想下拉 */
+  .inp-wrap{position:relative;}
+  .sug{
+    position:absolute;left:0;right:0;top:calc(100% + 3px);background:#fff;
+    border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);
+    z-index:40;display:none;max-height:156px;overflow:auto;
+  }
+  .sug.on{display:block;}
+  .sug div{padding:8px 12px;font-size:13px;cursor:pointer;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sug div:hover{background:var(--accent-soft);}
+  .sug div b{color:var(--accent);font-weight:600;}
+  .sug .sug-hint{font-size:11px;color:var(--ink-soft);padding:5px 12px 3px;cursor:default;}
+  .sug .sug-hint:hover{background:transparent;}
   .meal-block textarea::placeholder,input::placeholder{color:#b8bac2;}
   .img-row{display:flex;gap:10px;align-items:flex-end;}
   .img-preview{
@@ -460,11 +471,6 @@
       </div>
       <div class="cal-week"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
       <div class="cal-grid" id="calGrid"></div>
-      <div class="legend">
-        <span><i style="background:var(--accent)">早</i>早餐</span>
-        <span><i style="background:var(--green)">午</i>午餐</span>
-        <span><i style="background:var(--blue)">晚</i>晚餐</span>
-      </div>
     </div>
   </section>
 
@@ -934,8 +940,8 @@ function renderBlocks(){
     <div class="meal-block ${m.k}">
       <span class="tag">${m.name}</span>
       <div class="fields">
-        <input type="text" id="rest-${m.k}" placeholder="${m.ph}" value="${r?esc(r.rest):''}">
-        <input type="text" id="dish-${m.k}" placeholder="吃了什么？用「、」分隔，如：番茄牛腩、米饭" value="${r?esc(r.dishes):''}">
+        <div class="inp-wrap"><input type="text" id="rest-${m.k}" placeholder="${m.ph}" autocomplete="off" value="${r?esc(r.rest):''}"><div class="sug"></div></div>
+        <div class="inp-wrap"><input type="text" id="dish-${m.k}" placeholder="吃了什么？用「、」分隔，如：番茄牛腩、米饭" autocomplete="off" value="${r?esc(r.dishes):''}"><div class="sug"></div></div>
         <textarea id="note-${m.k}" placeholder="随手记一句：今天这一餐的感觉…">${r?esc(r.note||''):''}</textarea>
       </div>
       <div class="img-row">
@@ -966,6 +972,60 @@ function renderBlocks(){
       renderBlocks();
     });
   });
+  /* 历史输入联想：饭店 / 菜品 */
+  MEALS.forEach(m=>{
+    attachSuggest(document.getElementById('rest-'+m.k),'rest');
+    attachSuggest(document.getElementById('dish-'+m.k),'dish');
+  });
+}
+/* 从历史记录收集候选：饭店名 / 单个菜品名 */
+function histPool(type){
+  const set=new Set();
+  db.forEach(r=>{
+    if(type==='rest'){const v=(r.rest||'').trim();if(v)set.add(v);}
+    else{(r.dishes||'').split(/[、,，;；]/).forEach(d=>{d=d.trim();if(d)set.add(d);});}
+  });
+  return [...set];
+}
+/* 联想交互：首字即触发，点击补全；菜品字段只替换「、」后的当前段 */
+function attachSuggest(input,type){
+  const box=input.parentElement.querySelector('.sug');
+  if(!box)return;
+  const curSeg=()=>{
+    const v=input.value;
+    return type==='dish'?v.slice(Math.max(v.lastIndexOf('、'),v.lastIndexOf('，'))+1):v;
+  };
+  const headBefore=()=>{
+    const v=input.value;
+    const i=Math.max(v.lastIndexOf('、'),v.lastIndexOf('，'));
+    return i>=0?v.slice(0,i+1):'';
+  };
+  const close=()=>{box.classList.remove('on');box.innerHTML='';};
+  const render=()=>{
+    const seg=curSeg();
+    const q=seg.trim();
+    if(!q){close();return;}
+    const hits=histPool(type).filter(s=>s!==q&&s.startsWith(q)).slice(0,6);
+    if(!hits.length){close();return;}
+    box.innerHTML=`<div class="sug-hint">历史记录</div>`+hits.map(s=>
+      `<div data-v="${esc(s)}"><b>${esc(q)}</b>${esc(s.slice(q.length))}</div>`).join('');
+    box.classList.add('on');
+    box.querySelectorAll('div[data-v]').forEach(el=>{
+      el.onmousedown=e=>{
+        e.preventDefault();
+        const v=el.dataset.v;
+        input.value=type==='dish'?headBefore()+v+'、':v;
+        close();
+        input.focus();
+        /* 补全后光标移到末尾 */
+        const len=input.value.length;
+        input.setSelectionRange(len,len);
+      };
+    });
+  };
+  input.addEventListener('input',render);
+  input.addEventListener('focus',render);
+  input.addEventListener('blur',()=>setTimeout(close,120));
 }
 function closeModal(){document.getElementById('overlay').classList.remove('on');}
 document.getElementById('closeModal').onclick=closeModal;
