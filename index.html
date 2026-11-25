@@ -929,6 +929,20 @@ function openModal(ds){
   renderBlocks();
   document.getElementById('overlay').classList.add('on');
 }
+/* 重渲染前，把输入框里的当前文字同步进 editData —— 防止上传/删除照片触发重渲染时丢字 */
+function syncInputsToEdit(){
+  MEALS.forEach(m=>{
+    const re=document.getElementById('rest-'+m.k);
+    if(!re)return;
+    const de=document.getElementById('dish-'+m.k);
+    const ne=document.getElementById('note-'+m.k);
+    const rest=re.value.trim(),dishes=de.value.trim(),note=ne.value.trim();
+    if(!rest&&!dishes&&!note&&!editData[m.k])return;
+    const ed=editData[m.k]||{meal:m.k,rest:'',dishes:'',note:''};
+    ed.rest=rest;ed.dishes=dishes;ed.note=note;
+    editData[m.k]=ed;
+  });
+}
 function renderBlocks(){
   const wrap=document.getElementById('mealBlocks');
   wrap.innerHTML=MEALS.map(m=>{
@@ -960,6 +974,7 @@ function renderBlocks(){
   wrap.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{
     e.stopPropagation();
     const k=b.dataset.del;
+    syncInputsToEdit();
     if(editData[k]){editData[k].img=null;}
     renderBlocks();
   });
@@ -967,6 +982,7 @@ function renderBlocks(){
     const file=e.target.files[0];if(!file)return;
     compress(file,dataUrl=>{
       const k=f.id.replace('file-','');
+      syncInputsToEdit();
       if(!editData[k])editData[k]={meal:k,rest:'',dishes:'',note:''};
       editData[k].img=dataUrl;
       renderBlocks();
