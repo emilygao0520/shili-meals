@@ -437,7 +437,7 @@
 @media(max-width:640px){
   html,body{height:100%;}
   body{display:flex;flex-direction:column;overflow:hidden;}
-  header{padding:10px 13px 4px;gap:8px;flex-wrap:nowrap;align-items:center;}
+  header{padding:10px 13px 4px;gap:8px;flex-wrap:nowrap;align-items:center;width:100%!important;max-width:100%!important;}
   .brand{gap:8px;min-width:0;flex:1;}
   .brand h1{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .brand .bsub{display:none;}
@@ -447,16 +447,16 @@
   .tabs{padding:3px;}
   .tabs button{padding:5px 9px;font-size:12px;}
   .avatar-btn{width:30px;height:30px;font-size:13px;}
-  main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;}
+  main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;width:100%!important;max-width:100%!important;margin:0 auto!important;}
   /* 食历视图与排行页同构：普通文档流块级布局，宽度天然铺满（不依赖 flex/grid 拉伸）；
      一屏高度由 fitCal() 用 JS 显式设定 cal-card 高度，整月 6 行 grid-auto-rows:1fr 均分 */
-  #view-cal.on{display:block;width:100%;max-width:100%;align-self:stretch;box-sizing:border-box;}
-  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;width:100%;box-sizing:border-box;}
+  #view-cal.on{display:block;width:100%!important;max-width:100%!important;align-self:stretch;box-sizing:border-box;}
+  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;width:100%!important;max-width:100%!important;box-sizing:border-box;}
   #view-cal .stat{min-width:0;padding:8px 11px;gap:10px;border-radius:13px;}
   #view-cal .stat-tag{font-size:11px;padding:3px 7px;border-radius:7px;}
   #view-cal .stat-lines b{font-size:16px;}
   #view-cal .stat-lines i{font-size:9.5px;}
-  #view-cal .cal-card{width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:9px 8px 8px;border-radius:14px;}
+  #view-cal .cal-card{width:100%!important;max-width:100%!important;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:9px 8px 8px;border-radius:14px;}
   #view-cal .cal-head{margin-bottom:5px;}
   #view-cal .cal-title{font-size:15px;}
   #view-cal .cal-title small{display:none;}
@@ -662,7 +662,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v29</span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v30</span><span class="ver" id="diagTag"></span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1032,6 +1032,28 @@ function fitCal(){
 /* 统计卡是异步渲染的，高度会变；观察其尺寸变化后重算，避免首次加载算早了溢出 */
 const _statsEl=document.getElementById('stats');
 if(_statsEl&&window.ResizeObserver)new ResizeObserver(fitCal).observe(_statsEl);
+/* 部分国产浏览器会向页面注入"智能排版/加速"样式，把内容压成居中窄栏；
+   检测到内容列宽异常时，用 JS 内联 !important 强制纠偏，并在页脚显示诊断宽度便于定位 */
+function enforceWidth(){
+  if(!matchMedia('(max-width:640px)').matches)return;
+  const v=document.getElementById('view-cal');
+  if(!v)return;
+  const want=Math.round(innerWidth-24); // main 左右各 12px
+  const got=Math.round(v.getBoundingClientRect().width);
+  const tag=document.getElementById('diagTag');
+  if(tag)tag.textContent=`·屏${Math.round(innerWidth)}·列${got}`;
+  if(Math.abs(got-want)>6){
+    const fix=el=>{['width','max-width'].forEach(p=>el.style.setProperty(p,'100%','important'));
+      ['margin-left','margin-right'].forEach(p=>el.style.setProperty(p,'0','important'));};
+    [document.body,document.querySelector('header'),document.querySelector('main'),v,v.querySelector('.cal-card')]
+      .forEach(el=>{if(el)fix(el);});
+    fitCal();
+    const now=Math.round(v.getBoundingClientRect().width);
+    if(tag&&Math.abs(now-want)>6)tag.textContent=`·屏${Math.round(innerWidth)}·列${now}·纠偏失败`;
+  }
+}
+[0,800,2000,4000].forEach(t=>setTimeout(enforceWidth,t));
+addEventListener('resize',enforceWidth);
 /* 屏幕尺寸变化后重新排版文字 */
 let fitTimer=null;
 addEventListener('resize',()=>{
