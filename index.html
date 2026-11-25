@@ -445,15 +445,15 @@
   .tabs{padding:3px;}
   .tabs button{padding:5px 9px;font-size:12px;}
   .avatar-btn{width:30px;height:30px;font-size:13px;}
-  main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;}
-  /* 食历视图铺满剩余高度：一屏看完整个月历 */
-  #view-cal.on{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px;}
+  main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;}
+  /* 食历视图铺满剩余高度：一屏看完整个月历（显式满宽，不依赖浏览器对弹性项的拉伸行为） */
+  #view-cal.on{flex:1;width:100%;max-width:100%;align-self:stretch;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;min-height:0;overflow:hidden;}
+  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px;width:100%;box-sizing:border-box;}
   #view-cal .stat{min-width:0;padding:6px 9px;gap:8px;border-radius:11px;}
   #view-cal .stat-tag{font-size:11px;padding:3px 7px;border-radius:6px;}
   #view-cal .stat-lines b{font-size:17px;}
   #view-cal .stat-lines i{font-size:9.5px;}
-  #view-cal .cal-card{flex:1;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
+  #view-cal .cal-card{flex:1;width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
   #view-cal .cal-head{margin-bottom:5px;}
   #view-cal .cal-title{font-size:15px;}
   #view-cal .cal-title small{display:none;}
