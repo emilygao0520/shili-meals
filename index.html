@@ -435,8 +435,9 @@
 <style>
 /* ===== 手机端适配 ===== */
 @media(max-width:640px){
-  html,body{height:100%;}
+  html,body{height:100%;height:100dvh;}
   body{display:flex;flex-direction:column;overflow:hidden;}
+  footer{padding-bottom:8px;}
   header{padding:10px 13px 4px;gap:8px;flex-wrap:nowrap;align-items:center;width:100%!important;max-width:100%!important;}
   .brand{gap:8px;min-width:0;flex:1;}
   .brand h1{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -447,7 +448,7 @@
   .tabs{padding:3px;}
   .tabs button{padding:5px 9px;font-size:12px;}
   .avatar-btn{width:30px;height:30px;font-size:13px;}
-  main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;width:100%!important;max-width:100%!important;margin:0 auto!important;}
+  main{padding:6px 12px 6px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;width:100%!important;max-width:100%!important;margin:0 auto!important;}
   /* 食历视图与排行页同构：普通文档流块级布局，宽度天然铺满（不依赖 flex/grid 拉伸）；
      一屏高度由 fitCal() 用 JS 显式设定 cal-card 高度，整月 6 行 grid-auto-rows:1fr 均分 */
   #view-cal.on{display:block;width:100%!important;max-width:100%!important;align-self:stretch;box-sizing:border-box;}
@@ -662,7 +663,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v30</span><span class="ver" id="diagTag"></span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v31</span><span class="ver" id="diagTag"></span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1026,7 +1027,7 @@ function fitCal(){
   const m=document.querySelector('main');
   const pb=parseFloat(getComputedStyle(m).paddingBottom)||0;
   const avail=m.getBoundingClientRect().bottom-pb;
-  const h=Math.round(avail-card.getBoundingClientRect().top-4);
+  const h=Math.round(avail-card.getBoundingClientRect().top-2);
   card.style.height=(h>260?h:260)+'px';
 }
 /* 统计卡是异步渲染的，高度会变；观察其尺寸变化后重算，避免首次加载算早了溢出 */
