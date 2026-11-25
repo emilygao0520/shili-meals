@@ -80,17 +80,17 @@
     border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;
   }
   /* 累计 / 本月 两张统计卡：左侧小标签 + 右侧两行数字 */
-  .stat-wide{gap:14px;padding:12px 16px;}
+  .stat-wide{gap:10px;padding:9px 14px;}
   .stat-tag{
     font-family:var(--hand);font-size:13px;color:var(--ink-soft);flex:none;
     padding:4px 9px;border-radius:8px;background:#f1f2f5;letter-spacing:.5px;
   }
   .stat-wide .stat-tag{color:var(--accent);background:var(--accent-soft);}
   .stats .stat:nth-child(2) .stat-tag{color:var(--green);background:var(--green-soft);}
-  .stat-lines{display:flex;flex-direction:column;gap:1px;line-height:1.15;}
-  .stat-lines div{display:flex;align-items:baseline;gap:4px;}
-  .stat-lines b{font-size:21px;font-weight:600;letter-spacing:.3px;}
-  .stat-lines i{font-style:normal;font-size:11.5px;color:var(--ink-soft);letter-spacing:.4px;}
+  .stat-line{display:flex;align-items:baseline;gap:3px;white-space:nowrap;line-height:1.1;}
+  .stat-line b{font-size:18px;font-weight:600;}
+  .stat-line i{font-style:normal;font-size:10.5px;color:var(--ink-soft);letter-spacing:.3px;}
+  .stat-line u{text-decoration:none;font-size:10px;color:#c8ccd3;padding:0 2px;}
   .stat .ico{font-family:var(--hand);font-size:22px;width:38px;height:38px;border-radius:10px;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .stat b{font-size:20px;display:block;line-height:1.1;}
@@ -128,7 +128,8 @@
   /* 格子内三段式区域：上=早餐 中=午餐 下=晚餐，三餐均分格高、图片铺满整栏不留白 */
   .day .zone{flex:1 1 0;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
   .day .zone .th{
-    width:100%;height:100%;align-self:stretch;border-radius:6px;background-size:cover;background-position:center;
+    height:100%;width:auto;aspect-ratio:4/3;max-width:100%;
+    border-radius:6px;background-size:cover;background-position:center;
     box-shadow:0 1px 2px rgba(0,0,0,.1);
   }
   .day .zone .zt{
@@ -363,6 +364,7 @@
   .btn.blue{background:var(--blue);color:#fff;}
   footer{text-align:center;color:#b8bac2;font-size:12px;padding-bottom:30px;font-family:var(--hand);letter-spacing:1px;}
   footer .danger{color:var(--pink);cursor:pointer;margin-left:14px;font-family:sans-serif;letter-spacing:0;}
+  footer .ver{font-size:10px;color:#c9cdd4;margin-left:10px;font-family:sans-serif;letter-spacing:.5px;}
   .toast{
     position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
     background:var(--ink);color:#fff;padding:10px 22px;border-radius:12px;font-size:13px;
@@ -448,11 +450,12 @@
   main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;}
   /* 食历视图铺满剩余高度：一屏看完整个月历（显式满宽，不依赖浏览器对弹性项的拉伸行为） */
   #view-cal.on{flex:1;width:100%;max-width:100%;align-self:stretch;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;min-height:0;overflow:hidden;}
-  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px;width:100%;box-sizing:border-box;}
-  #view-cal .stat{min-width:0;padding:6px 9px;gap:8px;border-radius:11px;}
-  #view-cal .stat-tag{font-size:11px;padding:3px 7px;border-radius:6px;}
-  #view-cal .stat-lines b{font-size:17px;}
-  #view-cal .stat-lines i{font-size:9.5px;}
+  #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;width:100%;box-sizing:border-box;}
+  #view-cal .stat{min-width:0;padding:5px 8px;gap:7px;border-radius:10px;}
+  #view-cal .stat-tag{font-size:10.5px;padding:2px 6px;border-radius:6px;}
+  #view-cal .stat-line b{font-size:15px;}
+  #view-cal .stat-line i{font-size:9px;}
+  #view-cal .stat-line u{font-size:9px;padding:0 1px;}
   #view-cal .cal-card{flex:1;width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
   #view-cal .cal-head{margin-bottom:5px;}
   #view-cal .cal-title{font-size:15px;}
@@ -659,7 +662,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v23</span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -935,17 +938,11 @@ function renderStats(){
   document.getElementById('stats').innerHTML=`
     <div class="stat stat-wide">
       <div class="stat-tag">累计</div>
-      <div class="stat-lines">
-        <div><b>${db.length}</b><i>meals</i></div>
-        <div><b>${days.size}</b><i>days</i></div>
-      </div>
+      <div class="stat-line"><b>${db.length}</b><i>meals</i><u>·</u><b>${days.size}</b><i>days</i></div>
     </div>
     <div class="stat stat-wide">
       <div class="stat-tag">本月</div>
-      <div class="stat-lines">
-        <div><b>${mRecs.length}</b><i>meals</i></div>
-        <div><b>${mDays.size}</b><i>days</i></div>
-      </div>
+      <div class="stat-line"><b>${mRecs.length}</b><i>meals</i><u>·</u><b>${mDays.size}</b><i>days</i></div>
     </div>`;
 }
 function dayText(r){
@@ -1002,6 +999,10 @@ function renderCal(){
       ${zones}`;
     el.onclick=()=>openModal(ds);
     grid.appendChild(el);
+  }
+  /* 补足 42 格（6 行）：月份首尾对齐，保证每个月格子高度/版式完全一致 */
+  for(let i=first+cnt;i<42;i++){
+    const e=document.createElement('div');e.className='day empty';grid.appendChild(e);
   }
   fitCellTexts(grid);
   renderStats();
