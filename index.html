@@ -448,14 +448,15 @@
   .tabs button{padding:5px 9px;font-size:12px;}
   .avatar-btn{width:30px;height:30px;font-size:13px;}
   main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;}
-  /* 食历视图铺满剩余高度：用 grid 两行（统计条 auto / 日历 1fr），网格子项横向强制拉伸，不依赖浏览器 flex 拉伸行为 */
-  #view-cal.on{flex:1;display:grid;grid-template-rows:auto minmax(0,1fr);width:100%;max-width:100%;justify-items:stretch;align-items:stretch;box-sizing:border-box;min-height:0;overflow:hidden;}
+  /* 食历视图与排行页同构：普通文档流块级布局，宽度天然铺满（不依赖 flex/grid 拉伸）；
+     一屏高度由 fitCal() 用 JS 显式设定 cal-card 高度，整月 6 行 grid-auto-rows:1fr 均分 */
+  #view-cal.on{display:block;width:100%;max-width:100%;align-self:stretch;box-sizing:border-box;}
   #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;width:100%;box-sizing:border-box;}
   #view-cal .stat{min-width:0;padding:8px 11px;gap:10px;border-radius:13px;}
   #view-cal .stat-tag{font-size:11px;padding:3px 7px;border-radius:7px;}
   #view-cal .stat-lines b{font-size:16px;}
   #view-cal .stat-lines i{font-size:9.5px;}
-  #view-cal .cal-card{width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
+  #view-cal .cal-card{width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:9px 8px 8px;border-radius:14px;}
   #view-cal .cal-head{margin-bottom:5px;}
   #view-cal .cal-title{font-size:15px;}
   #view-cal .cal-title small{display:none;}
@@ -464,7 +465,7 @@
   #view-cal .cal-nav button#todayBtn{height:26px;font-size:11px;padding:0 9px;}
   #view-cal .cal-week{gap:3px;}
   #view-cal .cal-week div{font-size:10px;padding-bottom:2px;}
-  #view-cal .cal-grid{flex:1;min-height:0;grid-auto-rows:1fr;gap:3px;}
+  #view-cal .cal-grid{flex:1 1 0;min-height:0;grid-auto-rows:1fr;gap:3px;}
   #view-cal .day{min-height:0;padding:3px;border-radius:9px;}
   #view-cal .day .num{font-size:10px;line-height:1;padding-left:1px;}
   #view-cal .day .zone .zt{font-size:9px;line-height:1.2;padding:0 1px;}
@@ -661,7 +662,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v26</span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v29</span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -924,6 +925,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.getElementById('view-'+b.dataset.view).classList.add('on');
   if(b.dataset.view==='rank')renderRank();
   if(b.dataset.view==='circle')renderFeed();
+  if(b.dataset.view==='cal')fitCal();
 });
 
 /* ================= 日历 ================= */
@@ -1012,12 +1014,32 @@ function renderCal(){
   fitCellTexts(grid);
   renderStats();
 }
+/* 手机端一屏自适应：显式设定日历卡高度 = 视口剩余高度，整月 6 行固定放得下；
+   布局与排行页同为普通文档流，宽度天然铺满，不依赖 flex/grid 拉伸 */
+function fitCal(){
+  const v=document.getElementById('view-cal');
+  const card=v&&v.querySelector('.cal-card');
+  if(!card)return;
+  if(!matchMedia('(max-width:640px)').matches){card.style.height='';return;}
+  card.style.height='auto';
+  /* 可用底边 = main 的内容区底边（main 是 flex:1，页脚已从其高度中扣除），别用整个视口高 */
+  const m=document.querySelector('main');
+  const pb=parseFloat(getComputedStyle(m).paddingBottom)||0;
+  const avail=m.getBoundingClientRect().bottom-pb;
+  const h=Math.round(avail-card.getBoundingClientRect().top-4);
+  card.style.height=(h>260?h:260)+'px';
+}
+/* 统计卡是异步渲染的，高度会变；观察其尺寸变化后重算，避免首次加载算早了溢出 */
+const _statsEl=document.getElementById('stats');
+if(_statsEl&&window.ResizeObserver)new ResizeObserver(fitCal).observe(_statsEl);
 /* 屏幕尺寸变化后重新排版文字 */
 let fitTimer=null;
 addEventListener('resize',()=>{
+  fitCal();
   clearTimeout(fitTimer);
   fitTimer=setTimeout(()=>{const g=document.getElementById('calGrid');if(g)fitCellTexts(g);},180);
 });
+fitCal();
 document.getElementById('prevM').onclick=()=>{cur.setMonth(cur.getMonth()-1);renderCal();};
 document.getElementById('nextM').onclick=()=>{cur.setMonth(cur.getMonth()+1);renderCal();};
 document.getElementById('todayBtn').onclick=()=>{cur=new Date();cur.setDate(1);renderCal();};
@@ -1668,6 +1690,13 @@ document.getElementById('clearAll').onclick=async ()=>{
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  /* 新 SW 接管（skipWaiting+claim）后自动刷新一次，保证旧缓存设备立刻拿到新版页面 */
+  (function(){
+    var hadCtrl=!!navigator.serviceWorker.controller,done=false;
+    navigator.serviceWorker.addEventListener('controllerchange',function(){
+      if(hadCtrl&&!done){done=true;location.reload();}
+    });
+  })();
 }
 </script>
 </body>
