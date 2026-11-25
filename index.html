@@ -128,7 +128,7 @@
   /* 格子内三段式区域：上=早餐 中=午餐 下=晚餐，三餐均分格高、图片铺满整栏不留白 */
   .day .zone{flex:1 1 0;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
   .day .zone .th{
-    height:100%;width:auto;aspect-ratio:4/3;max-width:100%;
+    width:100%;height:100%;align-self:stretch;
     border-radius:6px;background-size:cover;background-position:center;
     box-shadow:0 1px 2px rgba(0,0,0,.1);
   }
@@ -662,7 +662,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v24</span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v25</span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
