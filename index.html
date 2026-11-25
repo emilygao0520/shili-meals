@@ -448,15 +448,15 @@
   .tabs button{padding:5px 9px;font-size:12px;}
   .avatar-btn{width:30px;height:30px;font-size:13px;}
   main{padding:6px 12px 10px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;}
-  /* 食历视图铺满剩余高度：一屏看完整个月历（显式满宽，不依赖浏览器对弹性项的拉伸行为） */
-  #view-cal.on{flex:1;width:100%;max-width:100%;align-self:stretch;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;min-height:0;overflow:hidden;}
+  /* 食历视图铺满剩余高度：用 grid 两行（统计条 auto / 日历 1fr），网格子项横向强制拉伸，不依赖浏览器 flex 拉伸行为 */
+  #view-cal.on{flex:1;display:grid;grid-template-rows:auto minmax(0,1fr);width:100%;max-width:100%;justify-items:stretch;align-items:stretch;box-sizing:border-box;min-height:0;overflow:hidden;}
   #view-cal .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;width:100%;box-sizing:border-box;}
   #view-cal .stat{min-width:0;padding:5px 8px;gap:7px;border-radius:10px;}
   #view-cal .stat-tag{font-size:10.5px;padding:2px 6px;border-radius:6px;}
   #view-cal .stat-line b{font-size:15px;}
   #view-cal .stat-line i{font-size:9px;}
   #view-cal .stat-line u{font-size:9px;padding:0 1px;}
-  #view-cal .cal-card{flex:1;width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
+  #view-cal .cal-card{width:100%;max-width:100%;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;padding:9px 8px 8px;border-radius:14px;}
   #view-cal .cal-head{margin-bottom:5px;}
   #view-cal .cal-title{font-size:15px;}
   #view-cal .cal-title small{display:none;}
@@ -662,7 +662,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v23</span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v24</span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
