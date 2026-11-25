@@ -13,32 +13,6 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <style>
-/* ===== 手机端适配 ===== */
-@media(max-width:640px){
-  header{padding:16px 14px 0;}
-  .brand h1{font-size:20px;}
-  .brand p{font-size:10px;}
-  .brand-mark{width:36px;height:36px;font-size:20px;}
-  main{padding:14px 12px 40px;}
-  .tabs{padding:4px;}
-  .tabs button{padding:7px 12px;font-size:12px;}
-  .avatar-btn{width:34px;height:34px;font-size:14px;}
-  .stat{min-width:100%;padding:11px 14px;}
-  .stat b{font-size:17px;}
-  .cal-card{padding:14px 10px;}
-  .day{min-height:78px;padding:5px 5px;}
-  .day .num{font-size:12px;}
-  .day .thumbs .th{width:22px;height:22px;}
-  .cal-week,.cal-grid{gap:4px;}
-  .cal-title{font-size:18px;}
-  .cal-nav button{width:30px;height:30px;}
-  .rank-card{padding:14px;}
-  .modal{padding:18px 14px;}
-  .composer,.post{padding:14px;}
-  .auth-card{padding:26px 20px;}
-}
-</style>
-<style>
   :root{
     --paper:#f4f5f7;
     --card:#ffffff;
@@ -401,16 +375,12 @@
   .field input:focus,.field select:focus{border-color:var(--accent);background:#fff;}
   .code-row{display:flex;gap:10px;}
   .code-row input{flex:1;}
-  .code-row button{
-    border:none;background:var(--green);color:#fff;border-radius:11px;padding:0 16px;
-    font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;
-  }
-  .code-row button:disabled{background:#c8cdbd;cursor:not-allowed;}
   .auth-submit{
     width:100%;border:none;background:var(--accent);color:#fff;border-radius:12px;
     padding:13px;font-size:15px;cursor:pointer;font-family:inherit;margin-top:6px;transition:.15s;
   }
   .auth-submit:hover{filter:brightness(1.06);}
+  .auth-submit:disabled{background:#d9a2a0;cursor:wait;}
   .auth-back{
     width:100%;border:none;background:transparent;color:var(--ink-soft);
     padding:10px;font-size:13px;cursor:pointer;font-family:inherit;margin-top:4px;
@@ -436,6 +406,32 @@
   }
   .ptag b{color:var(--ink);font-weight:600;}
   .ptag.on{background:var(--accent-soft);border-color:transparent;color:var(--accent);}
+</style>
+<style>
+/* ===== 手机端适配 ===== */
+@media(max-width:640px){
+  header{padding:16px 14px 0;}
+  .brand h1{font-size:20px;}
+  .brand p{font-size:10px;}
+  .brand-mark{width:36px;height:36px;font-size:20px;}
+  main{padding:14px 12px 40px;}
+  .tabs{padding:4px;}
+  .tabs button{padding:7px 12px;font-size:12px;}
+  .avatar-btn{width:34px;height:34px;font-size:14px;}
+  .stat{min-width:100%;padding:11px 14px;}
+  .stat b{font-size:17px;}
+  .cal-card{padding:14px 10px;}
+  .day{min-height:78px;padding:5px 5px;}
+  .day .num{font-size:12px;}
+  .day .thumbs .th{width:22px;height:22px;}
+  .cal-week,.cal-grid{gap:4px;}
+  .cal-title{font-size:18px;}
+  .cal-nav button{width:30px;height:30px;}
+  .rank-card{padding:14px;}
+  .modal{padding:18px 14px;}
+  .composer,.post{padding:14px;}
+  .auth-card{padding:26px 20px;}
+}
 </style>
 </head>
 <body>
@@ -554,22 +550,19 @@
       <h2 id="authTitle">登录食历</h2>
       <p>手机号绑定注册 · 和更多食客一起记录烟火气</p>
     </div>
-    <!-- 第一步：手机号 + 验证码 -->
+    <!-- 第一步：手机号 + 密码 -->
     <div class="auth-form" id="stepPhone">
       <div class="field">
         <label>手机号</label>
         <input type="tel" id="phoneInput" maxlength="11" placeholder="请输入 11 位手机号">
       </div>
       <div class="field">
-        <label>短信验证码</label>
-        <div class="code-row">
-          <input type="text" id="codeInput" maxlength="6" placeholder="6 位验证码">
-          <button id="sendCode">获取验证码</button>
-        </div>
+        <label>登录密码</label>
+        <input type="password" id="pwInput" maxlength="32" placeholder="至少 6 位（新手机号将以此注册）">
       </div>
       <button class="auth-submit" id="doLogin">登录 / 注册</button>
       <button class="auth-back" id="authCancel">先逛逛，暂不登录</button>
-      <div class="auth-note">演示环境：验证码将通过提示框发送<br>注册后可继续完善个人资料</div>
+      <div class="auth-note">同一手机号在任何设备登录，都能看到你的全部食历与互动<br>记录保存在云端，不会再因换手机而丢失</div>
     </div>
     <!-- 第二步：完善资料（全部选填） -->
     <div class="auth-form" id="stepProfile" style="display:none">
@@ -620,33 +613,56 @@
 <footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
+/* ================= 云端配置（Supabase） ================= */
+const SB_URL='https://snnnldhaikmhxptelvyd.supabase.co/rest/v1';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNubm5sZGhhaWttaHhwdGVsdnlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1NzkwMDMsImV4cCI6MjExMTE1NTAwM30.aYSv7gpiR0P2sUTAp_hxnsch4fCuaIvV2nnFsFKKv2w';
+async function sbReq(method,path,body,extra){
+  const opt={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'}};
+  if(extra)Object.assign(opt.headers,extra);
+  if(body!==undefined)opt.body=JSON.stringify(body);
+  const r=await fetch(SB_URL+path,opt);
+  if(!r.ok){
+    let msg='网络异常';
+    try{const j=await r.json();msg=j.message||msg;}catch(e){}
+    throw new Error(msg);
+  }
+  return r;
+}
+async function sbJson(method,path,body,extra){
+  const r=await sbReq(method,path,body,extra);
+  const t=await r.text();
+  return t?JSON.parse(t):null;
+}
+async function sha256(s){
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('shili·'+s));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    let h=0;for(const c of s)h=(h*131+c.charCodeAt(0))>>>0;
+    return 'x'+h.toString(16);
+  }
+}
+
 /* ================= 数据层 ================= */
-const KEY='shili_meals_v1', UKEY='shili_users_v1', SKEY='shili_session_v1', PKEY='shili_posts_v1';
+const KEY='shili_meals_v1', SKEY='shili_session_v1', PKEY='shili_posts_v1', MKEY='shili_migrated_v1';
 const MEALS=[
   {k:'b',name:'早餐',ph:'如：楼下的豆浆油条铺'},
   {k:'l',name:'午餐',ph:'如：公司附近的面馆'},
   {k:'d',name:'晚餐',ph:'如：家里的餐桌'}
 ];
-let db=JSON.parse(localStorage.getItem(KEY)||'null');
-if(!db){db=seedDemo();save();}
-let users=JSON.parse(localStorage.getItem(UKEY)||'{}');
+let db=[];                 /* 当前视图的记录（游客=本机 / 登录=云端） */
 let curPhone=localStorage.getItem(SKEY)||null;
-let posts=JSON.parse(localStorage.getItem(PKEY)||'null');
-if(!posts){posts=seedPosts();savePosts();}
+let curProfile=null;
+let posts=JSON.parse(localStorage.getItem(PKEY)||'null')||[];
 function save(){localStorage.setItem(KEY,JSON.stringify(db));}
-/* 旧数据配色迁移：高饱和旧色 → 低饱和新色板 */
-(function migrateColors(){
-  const map={"#f5b971":"#e3b49e","#f0a35e":"#e3b49e","#e8814f":"#cf7a70","#a8c69f":"#b5cdb4","#7fa06a":"#84a98f","#9db8d2":"#b8c6d8","#6f8fb5":"#8399b6","#e2a58f":"#dfb2a4","#c96a5a":"#c37f70","#d9b6d4":"#cabdd3","#a3779f":"#9c86ab","#f3c78a":"#dfcda6","#d9a441":"#c2a36e"};
-  let changed=false;
-  const fix=o=>{["c1","c2"].forEach(k=>{if(o[k]&&map[o[k]]){o[k]=map[o[k]];changed=true;}});};
-  db.forEach(fix);
-  posts.forEach(p=>{fix(p);(p.comments||[]).forEach(c=>fix(c));});
-  if(changed){save();savePosts();}
-})();
-function saveUsers(){localStorage.setItem(UKEY,JSON.stringify(users));}
-function savePosts(){localStorage.setItem(PKEY,JSON.stringify(posts));}
+function savePostsCache(){localStorage.setItem(PKEY,JSON.stringify(posts));}
+function loadLocalDb(){
+  let d=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(!d){d=seedDemo();save();}
+  return d;
+}
 function dstr(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
-function curUser(){return curPhone?users[curPhone]:null;}
+function curUser(){return curProfile;}
 function uidOf(){return curPhone||'guest';}
 function nickOf(){
   const u=curUser();
@@ -660,7 +676,13 @@ function avGrad(seedStr){
   return `linear-gradient(135deg,${p[0]},${p[1]})`;
 }
 function avatarStyle(name){return `background:${avGrad(name)}`;}
-/* 示例食历数据（图片用渐变占位，可自行替换为真实照片） */
+/* 旧缓存里遗留的高饱和色 → 低饱和新色板 */
+(function fixOldColors(){
+  const map={"#f5b971":"#e3b49e","#f0a35e":"#e3b49e","#e8814f":"#cf7a70","#a8c69f":"#b5cdb4","#7fa06a":"#84a98f","#9db8d2":"#b8c6d8","#6f8fb5":"#8399b6","#e2a58f":"#dfb2a4","#c96a5a":"#c37f70","#d9b6d4":"#cabdd3","#a3779f":"#9c86ab","#f3c78a":"#dfcda6","#d9a441":"#c2a36e"};
+  const fix=p=>{["c1","c2"].forEach(k=>{if(p[k]&&map[p[k]])p[k]=map[p[k]];});(p.comments||[]).forEach(c=>fix(c));};
+  posts.forEach(fix);
+})();
+/* 示例食历数据（游客模式的本机演示数据） */
 function seedDemo(){
   const t=new Date();const y=t.getFullYear(),m=t.getMonth();
   const mk=(dy,meal,rest,dishes,note,c1,c2)=>({
@@ -706,6 +728,34 @@ function seedPosts(){
         {nick:'阿汤',body:'年糕+冷面是标配',uid:'demo-阿汤'}])
   ];
 }
+/* ---- 记录：本机结构 <-> 云端行 ---- */
+function recToRow(phone,r){
+  return {phone,date:r.date,meal:r.meal,restaurant:r.rest||'',dishes:r.dishes||'',
+    note:r.note||'',photos:r.img?[r.img]:[]};
+}
+function rowToRec(row){
+  return {date:row.date,meal:row.meal,rest:row.restaurant||'',dishes:row.dishes||'',
+    note:row.note||'',img:(row.photos&&row.photos[0])||null,c1:null,c2:null};
+}
+/* ---- 帖子：本机结构 <-> 云端行 ---- */
+function rowToPost(row){
+  const a=row.author||{};
+  return {id:'c'+row.id,rowId:row.id,
+    type:row.type==='rec'?'rec':'muse',
+    title:row.title||'',rest:row.shop||'',dish:'',body:row.content||'',
+    img:(row.images&&row.images[0])||null,c1:null,c2:null,
+    t:row.created_at?Date.parse(row.created_at):Date.now(),
+    author:{nick:a.nick||'食客',uid:a.uid||'',mbti:a.mbti||'',star:a.star||'',age:a.age||''},
+    likes:row.likes||[],thumbs:row.thumbs||[],comments:row.comments||[]};
+}
+function postToRow(p){
+  const row={phone:(p.author&&/^1\d{10}$/.test(p.author.uid||''))?p.author.uid:'',
+    author:p.author,type:p.type,title:p.title||'',shop:p.rest||'',content:p.body||'',
+    images:p.img?[p.img]:[],likes:p.likes||[],thumbs:p.thumbs||[],
+    comments:p.comments||[],created_at:new Date(p.t||Date.now()).toISOString()};
+  if(p.rowId)row.id=p.rowId;
+  return row;
+}
 
 /* ================= 工具 ================= */
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
@@ -745,6 +795,58 @@ function requireLogin(){
   toast('先登录，才能和大家互动哦');
   openAuth();
   return false;
+}
+
+/* ================= 云端同步 ================= */
+async function refreshPosts(silent){
+  try{
+    let rows=await sbJson('GET','/posts?order=id.desc&limit=200');
+    if(!rows.length){
+      /* 云端为空：把本机缓存帖子（或示例帖）作为初始内容迁入 */
+      const local=JSON.parse(localStorage.getItem(PKEY)||'null');
+      const seed=(local&&local.length)?local:seedPosts();
+      const rowsIns=seed.map(p=>postToRow(p));
+      rowsIns.forEach(r=>{delete r.id;});
+      await sbReq('POST','/posts',rowsIns,{'Prefer':'return=minimal'});
+      rows=await sbJson('GET','/posts?order=id.desc&limit=200');
+    }
+    posts=rows.map(rowToPost).sort((a,b)=>b.t-a.t);
+    savePostsCache();
+  }catch(e){
+    if(!posts.length)posts=seedPosts();
+    if(!silent)toast('云端连接失败，当前展示本地缓存');
+  }
+  renderFeed();
+}
+async function loadCloudData(){
+  if(!curPhone)return;
+  try{
+    const rows=await sbJson('GET','/records?phone=eq.'+curPhone);
+    db=rows.map(rowToRec);
+  }catch(e){
+    db=[];
+    toast('云端食历加载失败，请检查网络');
+    renderCal();
+    return;
+  }
+  /* 一次性迁移：把本机旧记录合并进云端账号 */
+  const local=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(!localStorage.getItem(MKEY)&&local&&local.length){
+    const exist=new Set(db.map(r=>r.date+'|'+r.meal));
+    const need=local.filter(r=>!exist.has(r.date+'|'+r.meal));
+    if(need.length){
+      try{
+        await sbReq('POST','/records?on_conflict=phone,date,meal',
+          need.map(r=>recToRow(curPhone,r)),
+          {'Prefer':'resolution=merge-duplicates,return=minimal'});
+        db=db.concat(need);
+        toast('已把本机 '+need.length+' 条旧记录同步进云端');
+      }catch(e){}
+    }
+    localStorage.setItem(MKEY,'1');
+  }
+  renderCal();
+  refreshPosts(true);
 }
 
 /* ================= 视图切换 ================= */
@@ -810,7 +912,6 @@ function renderCal(){
       const hit=recs.some(r=>r.meal===mm.k);
       return `<i class="${hit?'hit '+mm.k:''}">${{b:'早',l:'午',d:'晚'}[mm.k]}</i>`;
     }).join('');
-    const tapeCls=recs.length>2?'tape g':(imgRecs.length?'':'tape p');
     el.innerHTML=`${recs.length?`<div class="tape ${imgRecs.length?'':'g'}"></div>`:''}
       <div class="num">${d}</div>
       ${inner}
@@ -889,25 +990,47 @@ function closeModal(){document.getElementById('overlay').classList.remove('on');
 document.getElementById('closeModal').onclick=closeModal;
 document.getElementById('closeModal2').onclick=closeModal;
 document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay')closeModal();};
-document.getElementById('saveDay').onclick=()=>{
+document.getElementById('saveDay').onclick=async function(){
+  const btn=this;
+  const recs=[];
+  const delMeals=new Set();
   MEALS.forEach(m=>{
     const rest=document.getElementById('rest-'+m.k).value.trim();
     const dishes=document.getElementById('dish-'+m.k).value.trim();
     const note=document.getElementById('note-'+m.k).value.trim();
     const img=(editData[m.k]&&editData[m.k].img)||null;
-    const old=db.find(r=>r.date===editDate&&r.meal===m.k);
     /* 三种记录方式自由组合：只文字 / 只图片 / 图文并茂 */
-    if(!rest&&!dishes&&!note&&!img){
-      if(old)db=db.filter(r=>r!==old);
+    if(!rest&&!dishes&&!note&&!img){delMeals.add(m.k);return;}
+    const ed=editData[m.k]||{};
+    recs.push({date:editDate,meal:m.k,rest,dishes,note,img,
+      c1:ed.c1||null,c2:ed.c2||null});
+  });
+  if(curPhone){
+    btn.disabled=true;
+    try{
+      if(recs.length){
+        await sbReq('POST','/records?on_conflict=phone,date,meal',
+          recs.map(r=>recToRow(curPhone,r)),
+          {'Prefer':'resolution=merge-duplicates,return=minimal'});
+      }
+      for(const k of delMeals){
+        await sbReq('DELETE','/records?phone=eq.'+curPhone+'&date=eq.'+editDate+'&meal=eq.'+k);
+      }
+    }catch(e){
+      btn.disabled=false;
+      toast('云端保存失败：'+e.message);
       return;
     }
-    const ed=editData[m.k]||{};
-    const rec={date:editDate,meal:m.k,rest,dishes,note,img,
-      c1:ed.c1||null,c2:ed.c2||null};
+    btn.disabled=false;
+  }
+  db=db.filter(r=>!(r.date===editDate&&delMeals.has(r.meal)));
+  recs.forEach(rec=>{
+    const old=db.find(r=>r.date===rec.date&&r.meal===rec.meal);
     if(old)Object.assign(old,rec);else db.push(rec);
   });
-  save();renderCal();closeModal();
-  toast('已记入手账，日历又被填满一格 ✦');
+  if(!curPhone)save();
+  renderCal();closeModal();
+  toast(curPhone?'已记入云端手账，换个设备也能看到 ✦':'已记入手账，日历又被填满一格 ✦');
 };
 
 /* ================= 排行 ================= */
@@ -994,30 +1117,46 @@ function syncComposerImg(){
   el.className=composerImg?'img-mini has':'img-mini';
   el.style.backgroundImage=composerImg?`url('${composerImg}')`:'';
 }
-document.getElementById('cPost').onclick=()=>{
+document.getElementById('cPost').onclick=async function(){
   if(!requireLogin())return;
   const body=document.getElementById('cBody').value.trim();
   const title=document.getElementById('cTitle').value.trim();
   const rest=document.getElementById('cRest').value.trim();
   if(!body&&!composerImg){toast('写点什么，或加一张图再发布吧');return;}
-  if(composerType==='rec'&&!rest&&!dishOf()){toast('安利美食要留下店名或菜品，让大家找得到呀');return;}
+  if(composerType==='rec'&&!rest){toast('安利美食要留下店名，让大家找得到呀');return;}
   const u=curUser();
-  posts.unshift({
+  const p={
     id:'p'+Date.now(), type:composerType,
     title:title||(composerType==='rec'?'一个真诚的安利':'今日碎碎念'),
-    rest, dish:dishOf(), body,
+    rest, dish:'', body,
     img:composerImg,c1:null,c2:null, t:Date.now(),
     author:{nick:u.nickname,uid:uidOf(),mbti:u.mbti||'',star:u.star||'',age:u.age||''},
     likes:[],thumbs:[],comments:[]
-  });
-  savePosts();
+  };
+  this.disabled=true;
+  try{
+    const rows=await sbJson('POST','/posts',postToRow(p),{'Prefer':'return=representation'});
+    if(rows&&rows[0]){
+      const np=rowToPost(rows[0]);
+      np.title=p.title;
+      posts.unshift(np);
+    }
+  }catch(e){
+    posts.unshift(p);
+    savePostsCache();
+    this.disabled=false;
+    toast('云端发布失败，帖子已暂存本机');
+    renderFeed();
+    return;
+  }
+  this.disabled=false;
+  savePostsCache();
   document.getElementById('cBody').value='';
   document.getElementById('cTitle').value='';
   document.getElementById('cRest').value='';
   composerImg=null;syncComposerImg();
   renderFeed();
-  toast(composerType==='rec'?'安利已发出，等大家点亮爱心吧':'碎碎念已随风飘上食客圈');
-  function dishOf(){return document.getElementById('cTitle').value.trim().split('，')[0]||'';}
+  toast(composerType==='rec'?'安利已发上云端，等大家点亮爱心吧':'碎碎念已随风飘上食客圈');
 };
 function renderFeed(){
   const wrap=document.getElementById('feed');
@@ -1034,7 +1173,7 @@ function renderFeed(){
     return `
     <div class="post">
       <div class="post-head">
-        <div class="p-avatar" style="${avatarStyle(p.author.nick)}">${esc(p.author.nick[0])}</div>
+        <div class="p-avatar" style="${avatarStyle(p.author.nick)}">${esc((p.author.nick||'食')[0])}</div>
         <div class="p-meta">
           <b>${esc(p.author.nick)}</b><span class="time">${timeAgo(p.t)}</span>
           ${p.author.mbti?`<span class="time">· ${p.author.mbti}</span>`:''}
@@ -1043,7 +1182,7 @@ function renderFeed(){
         <span class="p-type ${p.type}">${p.type==='rec'?'推荐美食':'碎碎念'}</span>
       </div>
       ${p.type==='rec'&&(p.rest||p.dish)?`<div class="post-tag">在吃：${esc(p.rest||'')}${p.rest&&p.dish?' · ':''}${esc(p.dish||'')}</div>`:''}
-      ${p.type==='rec'?`<div class="post-title">${esc(p.title)}</div>`:''}
+      ${p.type==='rec'&&p.title?`<div class="post-title">${esc(p.title)}</div>`:''}
       <div class="post-body">${esc(p.body)}</div>
       ${imgHtml}
       <div class="post-actions">
@@ -1053,9 +1192,9 @@ function renderFeed(){
       </div>
       <div class="comment-area" id="cmt-${p.id}" style="display:none">
         <div id="cmtList-${p.id}">
-          ${p.comments.map(c=>`
+          ${(p.comments||[]).map(c=>`
             <div class="comment-item">
-              <div class="c-av" style="${avatarStyle(c.nick)}">${esc(c.nick[0])}</div>
+              <div class="c-av" style="${avatarStyle(c.nick)}">${esc((c.nick||'食')[0])}</div>
               <div><span class="c-nick">${esc(c.nick)}</span>${esc(c.body)}
                 <span class="time" style="font-size:10px;color:#b8bac2;margin-left:6px">${timeAgo(c.t)}</span></div>
             </div>`).join('')||'<div style="font-size:12px;color:#b8bac2;padding:4px 0">还没有评论，说点什么吧</div>'}
@@ -1069,20 +1208,26 @@ function renderFeed(){
   }).join('');
   bindFeed(wrap);
 }
+async function patchPost(p,fields){
+  if(!p.rowId)return;
+  try{await sbReq('PATCH','/posts?id=eq.'+p.rowId,fields);}catch(e){toast('互动同步失败，稍后再试');}
+}
 function bindFeed(wrap){
   wrap.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{
     if(!requireLogin())return;
     const p=posts.find(x=>x.id===b.dataset.like);const me=uidOf();
     const i=p.likes.indexOf(me);
     if(i>=0){p.likes.splice(i,1);}else{p.likes.push(me);toast('爱心已送出 ♥');}
-    savePosts();renderFeed();
+    savePostsCache();renderFeed();
+    patchPost(p,{likes:p.likes});
   });
   wrap.querySelectorAll('[data-thumb]').forEach(b=>b.onclick=()=>{
     if(!requireLogin())return;
     const p=posts.find(x=>x.id===b.dataset.thumb);const me=uidOf();
     const i=p.thumbs.indexOf(me);
     if(i>=0){p.thumbs.splice(i,1);}else{p.thumbs.push(me);toast('大拇指已点亮，为这份安利加成 👍');}
-    savePosts();renderFeed();
+    savePostsCache();renderFeed();
+    patchPost(p,{thumbs:p.thumbs});
   });
   wrap.querySelectorAll('[data-cmt]').forEach(b=>b.onclick=()=>{
     const area=document.getElementById('cmt-'+b.dataset.cmt);
@@ -1098,57 +1243,60 @@ function bindFeed(wrap){
     if(!body){toast('评论不能是空的呀');return;}
     const p=posts.find(x=>x.id===pid);
     p.comments.push({nick:nickOf(),body,uid:uidOf(),t:Date.now()});
-    savePosts();renderFeed();
+    savePostsCache();renderFeed();
     document.getElementById('cmt-'+pid).style.display='';
+    patchPost(p,{comments:p.comments});
     toast('评论已发布');
   });
 }
 
-/* ================= 登录 / 注册 ================= */
-let pendingPhone=null,pendingCode=null;
+/* ================= 登录 / 注册（云端账号） ================= */
+let pendingReg=null;
 const authOverlay=document.getElementById('authOverlay');
 function openAuth(){
   showStep('phone');
   document.getElementById('phoneInput').value='';
-  document.getElementById('codeInput').value='';
+  document.getElementById('pwInput').value='';
   authOverlay.classList.add('on');
 }
 function showStep(step){
   document.getElementById('stepPhone').style.display=step==='phone'?'':'none';
   document.getElementById('stepProfile').style.display=step==='profile'?'':'none';
   document.getElementById('authTitle').textContent=
-    step==='phone'?'登录食历':'完善你的食客档案';
+    step==='phone'?'登录 / 注册':'完善你的食客档案';
 }
 document.getElementById('authCancel').onclick=()=>authOverlay.classList.remove('on');
 authOverlay.onclick=e=>{if(e.target===authOverlay)authOverlay.classList.remove('on');};
-document.getElementById('sendCode').onclick=function(){
+document.getElementById('doLogin').onclick=async function(){
   const phone=document.getElementById('phoneInput').value.trim();
+  const pw=document.getElementById('pwInput').value;
   if(!/^1\d{10}$/.test(phone)){toast('请输入正确的 11 位手机号');return;}
-  pendingPhone=phone;
-  pendingCode=String(Math.floor(100000+Math.random()*900000));
-  toast('演示环境 · 验证码：'+pendingCode);
-  let sec=60;const btn=this;
-  btn.disabled=true;btn.textContent=sec+'s';
-  const tm=setInterval(()=>{
-    sec--;
-    if(sec<=0){clearInterval(tm);btn.disabled=false;btn.textContent='获取验证码';}
-    else btn.textContent=sec+'s';
-  },1000);
-};
-document.getElementById('doLogin').onclick=()=>{
-  const phone=document.getElementById('phoneInput').value.trim();
-  const code=document.getElementById('codeInput').value.trim();
-  if(!/^1\d{10}$/.test(phone)){toast('请输入正确的 11 位手机号');return;}
-  if(!pendingCode||phone!==pendingPhone){toast('请先获取验证码');return;}
-  if(code!==pendingCode){toast('验证码不正确，再看看？');return;}
-  if(users[phone]){
-    curPhone=phone;localStorage.setItem(SKEY,phone);
-    authOverlay.classList.remove('on');
-    syncAuth();toast('欢迎回来，'+users[phone].nickname);
-  }else{
-    pendingPhone=phone;
-    document.getElementById('pfNick').value='食客'+phone.slice(-4);
-    showStep('profile');
+  if(pw.length<6){toast('密码至少 6 位');return;}
+  const btn=this;btn.disabled=true;btn.textContent='验证中…';
+  const hash=await sha256(pw);
+  try{
+    const rows=await sbJson('GET','/users?phone=eq.'+phone);
+    if(rows.length){
+      if(rows[0].password_hash!==hash){
+        btn.disabled=false;btn.textContent='登录 / 注册';
+        toast('密码不正确，再想想？');return;
+      }
+      curPhone=phone;localStorage.setItem(SKEY,phone);
+      curProfile=Object.assign({phone:phone},rows[0].profile||{});
+      authOverlay.classList.remove('on');
+      syncAuth();
+      btn.disabled=false;btn.textContent='登录 / 注册';
+      toast('欢迎回来，'+curProfile.nickname);
+      await loadCloudData();
+    }else{
+      pendingReg={phone:phone,hash:hash,edit:false};
+      document.getElementById('pfNick').value='食客'+phone.slice(-4);
+      showStep('profile');
+      btn.disabled=false;btn.textContent='登录 / 注册';
+    }
+  }catch(e){
+    btn.disabled=false;btn.textContent='登录 / 注册';
+    toast('网络异常，稍后再试');
   }
 };
 /* 生日 → 星座 */
@@ -1162,11 +1310,12 @@ document.getElementById('pfBirthday').onchange=function(){
   const d=new Date(this.value+'T00:00:00');
   document.getElementById('pfStar').value=starOf(d.getMonth()+1,d.getDate());
 };
-document.getElementById('doRegister').onclick=()=>{
+document.getElementById('doRegister').onclick=async function(){
+  if(!pendingReg)return;
   const g=id=>document.getElementById(id).value.trim();
-  users[pendingPhone]={
-    phone:pendingPhone,
-    nickname:g('pfNick')||('食客'+pendingPhone.slice(-4)),
+  const profile={
+    phone:pendingReg.phone,
+    nickname:g('pfNick')||('食客'+pendingReg.phone.slice(-4)),
     gender:g('pfGender'),star:g('pfStar'),mbti:g('pfMbti'),
     age:g('pfAge')?Number(g('pfAge')):'',
     birthday:g('pfBirthday'),
@@ -1174,11 +1323,41 @@ document.getElementById('doRegister').onclick=()=>{
     weight:g('pfWeight')?Number(g('pfWeight')):'',
     sign:g('pfSign'),joined:Date.now()
   };
-  saveUsers();
-  curPhone=pendingPhone;localStorage.setItem(SKEY,curPhone);
-  authOverlay.classList.remove('on');
-  syncAuth();
-  toast('注册成功，欢迎加入食历，'+users[curPhone].nickname);
+  const btn=this;btn.disabled=true;
+  if(pendingReg.edit){
+    /* 编辑资料模式：只更新档案 */
+    try{
+      await sbReq('PATCH','/users?phone=eq.'+pendingReg.phone,{profile:profile});
+      curProfile=profile;
+      btn.disabled=false;btn.textContent='完成注册，开始记录';
+      pendingReg=null;
+      authOverlay.classList.remove('on');
+      syncAuth();
+      renderProfile();
+      document.getElementById('profileOverlay').classList.add('on');
+      toast('资料已更新并同步到云端');
+    }catch(e){
+      btn.disabled=false;btn.textContent='完成注册，开始记录';
+      toast('保存失败：'+e.message);
+    }
+    return;
+  }
+  btn.textContent='创建账号…';
+  try{
+    await sbReq('POST','/users',
+      {phone:pendingReg.phone,password_hash:pendingReg.hash,profile:profile},
+      {'Prefer':'return=minimal'});
+    curPhone=pendingReg.phone;localStorage.setItem(SKEY,curPhone);
+    curProfile=profile;
+    authOverlay.classList.remove('on');
+    syncAuth();
+    btn.disabled=false;btn.textContent='完成注册，开始记录';
+    toast('注册成功，欢迎加入食历，'+curProfile.nickname);
+    await loadCloudData();
+  }catch(e){
+    btn.disabled=false;btn.textContent='完成注册，开始记录';
+    toast(/duplicate|23505/.test(e.message)?'该手机号已注册，请直接登录':'注册失败：'+e.message);
+  }
 };
 
 /* ================= 个人主页 ================= */
@@ -1206,6 +1385,7 @@ document.getElementById('profileOverlay').onclick=e=>{
 };
 function renderProfile(){
   const u=curUser();
+  if(!u)return;
   const days=new Set(db.map(r=>r.date)).size;
   const rows=[
     u.gender&&['性别',u.gender],
@@ -1231,11 +1411,12 @@ function renderProfile(){
     </div>`;
 }
 document.getElementById('logoutBtn').onclick=()=>{
-  if(!confirm('退出登录后，食客圈互动需要重新登录。确定退出吗？'))return;
-  curPhone=null;localStorage.removeItem(SKEY);
+  if(!confirm('退出登录后，记录仍安全保存在云端，下次登录同一手机号即可找回。确定退出吗？'))return;
+  curPhone=null;curProfile=null;localStorage.removeItem(SKEY);
   document.getElementById('profileOverlay').classList.remove('on');
-  syncAuth();renderFeed();
-  toast('已退出，下次再来');
+  db=loadLocalDb();
+  syncAuth();renderCal();renderFeed();
+  toast('已退出，记录都在云端等你回来');
 };
 document.getElementById('editProfile').onclick=()=>{
   document.getElementById('profileOverlay').classList.remove('on');
@@ -1249,21 +1430,38 @@ document.getElementById('editProfile').onclick=()=>{
   document.getElementById('pfHeight').value=u.height||'';
   document.getElementById('pfWeight').value=u.weight||'';
   document.getElementById('pfSign').value=u.sign||'';
-  pendingPhone=curPhone;
+  pendingReg={phone:curPhone,hash:null,edit:true};
   showStep('profile');
+  document.getElementById('doRegister').textContent='保存资料';
   authOverlay.classList.add('on');
 };
 
 /* ================= 清空 ================= */
-document.getElementById('clearAll').onclick=()=>{
-  if(!confirm('⚠️ 将清空全部饮食记录（含照片），且无法恢复。确定继续吗？'))return;
+document.getElementById('clearAll').onclick=async ()=>{
+  if(!confirm('⚠️ 将清空'+(curPhone?'云端账号里':'本机')+'全部饮食记录（含照片），且无法恢复。确定继续吗？'))return;
   if(!confirm('再次确认：真的要清空所有记录吗？'))return;
+  if(curPhone){
+    try{await sbReq('DELETE','/records?phone=eq.'+curPhone);}
+    catch(e){toast('云端清空失败：'+e.message);return;}
+  }
   db=[];save();renderCal();toast('已清空，从今天重新开始记录吧');
 };
 
-syncAuth();renderCal();
+/* ================= 启动 ================= */
+(function boot(){
+  if(curPhone){
+    /* 有登录态：先渲染空日历，异步拉取云端数据 */
+    db=[];
+    syncAuth();renderCal();
+    loadCloudData();
+    refreshPosts(false);
+  }else{
+    db=loadLocalDb();
+    syncAuth();renderCal();
+    refreshPosts(true);
+  }
+})();
 </script>
-
 <script>
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
