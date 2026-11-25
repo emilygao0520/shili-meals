@@ -851,7 +851,7 @@ async function loadCloudData(){
         await sbReq('POST','/records?on_conflict=phone,date,meal',
           need.map(r=>recToRow(curPhone,r)),
           {'Prefer':'resolution=merge-duplicates,return=minimal'});
-        db=db.concat(need);
+        db=db.concat(need);save();
         toast('已把本机 '+need.length+' 条旧记录同步进云端');
       }catch(e){}
     }
@@ -1100,7 +1100,7 @@ document.getElementById('saveDay').onclick=async function(){
     const old=db.find(r=>r.date===rec.date&&r.meal===rec.meal);
     if(old)Object.assign(old,rec);else db.push(rec);
   });
-  if(!curPhone)save();
+  save();  /* 登录态也写本机缓存：刷新后云端加载失败时，回退显示的仍是最新数据 */
   renderCal();closeModal();
   toast(curPhone?'已记入云端手账，换个设备也能看到 ✦':'已记入手账，日历又被填满一格 ✦');
 };
