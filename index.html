@@ -348,6 +348,61 @@
   .rank-card.rest .bar i{background:var(--green);}
   .empty-rank{padding:26px 0;text-align:center;color:var(--ink-soft);font-size:13px;font-family:var(--hand);}
 
+  /* ---------- 用餐排行（单一卡片 + 餐厅/菜品切换） ---------- */
+  .rank-main{padding:20px;cursor:default;}
+  @media(min-width:900px){.rank-main{max-width:720px;margin:0 auto;}}
+  .rank-main:hover{transform:none;box-shadow:var(--shadow);}
+  .rank-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+  .rank-head h3{font-family:var(--hand);font-size:22px;letter-spacing:2px;margin:0;}
+  .rank-head h3::before{display:none;}
+  .rank-scope{font-size:12px;color:var(--ink-soft);letter-spacing:.5px;}
+  .kind-seg{display:flex;background:#f6efe8;border-radius:14px;padding:4px;margin:14px 0 10px;}
+  .kind-seg button{
+    flex:1;border:none;background:transparent;border-radius:11px;padding:9px 0;
+    font-size:14px;color:#8b8f99;cursor:pointer;font-family:inherit;transition:.18s;letter-spacing:1px;
+  }
+  .kind-seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 2px 8px rgba(44,46,54,.08);}
+  .period-seg{display:flex;background:#f6efe8;border-radius:14px;padding:4px;margin-bottom:12px;}
+  .period-seg button{
+    flex:1;border:none;background:transparent;border-radius:11px;padding:8px 0;
+    font-size:12.5px;color:#8b8f99;cursor:pointer;font-family:inherit;transition:.18s;
+  }
+  .period-seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 2px 8px rgba(44,46,54,.08);}
+  .rank-main .rank-filters{margin:0 0 6px;}
+  .rank-main .seg{flex:1 1 100%;}
+  .mode-pills{display:flex;gap:6px;width:100%;}
+  .rank-list{margin-top:2px;}
+  .rl-item{display:flex;gap:12px;padding:13px 2px 12px;border-bottom:1px dashed #eee7df;}
+  .rl-item:last-child{border-bottom:none;}
+  .rl-no{
+    width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+    font-size:12.5px;font-weight:600;background:#f3ece4;color:#9aa0aa;margin-top:2px;
+  }
+  .rl-no.top1{background:#f8e8c8;}
+  .rl-no.top1 svg{fill:#c8971f;}
+  .rl-no.top2{background:#eceef1;}
+  .rl-no.top2 svg{fill:#9299a4;}
+  .rl-no.top3{background:#f6e4d7;}
+  .rl-no.top3 svg{fill:#b97746;}
+  .rl-no svg{width:15px;height:15px;display:block;}
+  .rl-body{flex:1;min-width:0;}
+  .rl-top{display:flex;align-items:baseline;gap:8px;}
+  .rl-top b{font-size:15px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rl-top i{font-style:normal;font-size:12.5px;color:var(--accent);margin-left:auto;flex:none;}
+  .rl-bar{height:6px;border-radius:3px;background:#f3ece4;margin-top:8px;overflow:hidden;}
+  .rl-bar span{display:block;height:100%;border-radius:3px;background:var(--accent);}
+  .rank-main.kind-rest .rl-bar span{background:var(--green);}
+  .rank-main.kind-rest .rl-top i{color:#5f8b73;}
+  .rl-sub{font-size:11.5px;color:#a9aeb7;margin-top:6px;letter-spacing:.3px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .rank-all-btn{
+    margin-top:12px;width:100%;border:1px dashed #e7dfd6;background:#fffdfa;border-radius:12px;
+    padding:9px 0;font-size:12px;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .rank-all-btn:hover{border-color:var(--accent);color:var(--accent);}
+  #rankOverlay.rest .rl-bar span{background:var(--green);}
+  #rankOverlay.rest .rl-top i{color:#5f8b73;}
+
   /* ---------- 排行筛选 ---------- */
   .rank-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 16px;}
   .seg{display:flex;gap:4px;background:#eef0f3;padding:4px;border-radius:12px;}
@@ -688,6 +743,16 @@
   #view-cal .day .zone .th{border-radius:4px;}
   #view-cal .day .tape{width:24px;height:10px;left:9px;top:-5px;}
   .rank-card{padding:14px;}
+  /* 用餐排行合并卡 */
+  .rank-main{padding:15px 14px 12px;}
+  .rank-head h3{font-size:19px;}
+  .kind-seg{margin:12px 0 8px;padding:3px;}
+  .kind-seg button{padding:8px 0;font-size:13px;}
+  .period-seg{padding:3px;margin-bottom:10px;}
+  .period-seg button{padding:7px 0;font-size:11.5px;}
+  .rl-item{padding:11px 0 10px;gap:10px;}
+  .rl-top b{font-size:14px;}
+  .rl-sub{font-size:11px;}
   /* 排行筛选条 */
   .rank-filters{gap:6px;margin-bottom:12px;}
   .seg{padding:3px;}
@@ -767,33 +832,37 @@
 
   <!-- ========== 排行视图 ========== -->
   <section class="view" id="view-rank">
-    <div class="period-tabs" id="periodTabs">
-      <button data-p="week" class="on">本周</button>
-      <button data-p="month">本月</button>
-      <button data-p="year">本年</button>
-      <button data-p="all">全部</button>
-      <span class="period-label" id="periodLabel"></span>
-    </div>
-    <div class="rank-filters">
-      <div class="seg" id="mealFilter">
-        <button data-m="all" class="on">全部餐次</button>
-        <button data-m="b">早餐</button>
-        <button data-m="l">午餐</button>
-        <button data-m="d">晚餐</button>
+    <div class="rank-card rank-main">
+      <div class="rank-head">
+        <h3>用餐排行</h3>
+        <span class="rank-scope" id="rankScope"></span>
       </div>
-      <button class="drink-toggle" id="drinkToggle" title="自动识别奶茶 / 咖啡 / 饮料 / 糖水，无需手动打标签">只看饮品</button>
-      <button class="drink-toggle meal-pill" id="mealToggle" title="排除饮品，只看正餐">只看正餐</button>
-      <div class="filter-note" id="filterNote"></div>
-    </div>
-    <div class="rank-wrap">
-      <div class="rank-card rest" data-k="rest" title="点击查看完整排行">
-        <h3><span id="restTitle">饭店排行</span><span class="rank-more" id="moreRest"></span></h3>
-        <div id="rankRest"></div>
+      <div class="kind-seg" id="kindSeg">
+        <button data-k="rest" class="on">餐厅</button>
+        <button data-k="dish">菜品</button>
       </div>
-      <div class="rank-card" data-k="dish" title="点击查看完整排行">
-        <h3><span id="dishTitle">菜品排行</span><span class="rank-more" id="moreDish"></span></h3>
-        <div id="rankDish"></div>
+      <div class="period-seg" id="periodTabs">
+        <button data-p="week" class="on">本周</button>
+        <button data-p="month">本月</button>
+        <button data-p="year">今年</button>
+        <button data-p="all">全部</button>
+        <span class="period-label" id="periodLabel" hidden></span>
       </div>
+      <div class="rank-filters">
+        <div class="seg" id="mealFilter">
+          <button data-m="all" class="on">全部餐次</button>
+          <button data-m="b">早餐</button>
+          <button data-m="l">午餐</button>
+          <button data-m="d">晚餐</button>
+        </div>
+        <div class="mode-pills">
+          <button class="drink-toggle" id="drinkToggle" title="自动识别奶茶 / 咖啡 / 饮料 / 糖水，无需手动打标签">只看饮品</button>
+          <button class="drink-toggle meal-pill" id="mealToggle" title="排除饮品，只看正餐">只看正餐</button>
+        </div>
+        <div class="filter-note" id="filterNote"></div>
+      </div>
+      <div class="rank-list" id="rankList"></div>
+      <button class="rank-all-btn" id="rankAllBtn" hidden></button>
     </div>
   </section>
 
@@ -1022,7 +1091,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v52</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v55</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1835,72 +1904,86 @@ function rankData(p){
   const {a,b,label}=periodRange(p);
   const meal=rankFilter.meal, mode=rankFilter.mode;
   const recs=db.filter(r=>r.date>=a&&r.date<=b&&(meal==='all'||r.meal===meal));
-  const restCnt={},dishCnt={};
+  const restCnt={},dishCnt={},dishRests={};
+  const addRest=(dish,rest)=>{if(!rest)return;(dishRests[dish]=dishRests[dish]||{})[rest]=(dishRests[dish][rest]||0)+1;};
   recs.forEach(r=>{
     const dishes=(r.dishes||'').split(/[、,，;；\/\s]+/).map(s=>s.trim()).filter(Boolean);
     if(mode==='drink'){
       if(r.rest&&isDrinkShop(r.rest))restCnt[r.rest]=(restCnt[r.rest]||0)+1;
-      dishes.filter(isDrink).forEach(d=>dishCnt[d]=(dishCnt[d]||0)+1);
+      dishes.filter(isDrink).forEach(d=>{dishCnt[d]=(dishCnt[d]||0)+1;addRest(d,r.rest);});
     }else if(mode==='meal'){
       /* 只看正餐：排除饮品店与饮品单品 */
       if(r.rest&&!isDrinkShop(r.rest))restCnt[r.rest]=(restCnt[r.rest]||0)+1;
-      dishes.filter(d=>!isDrink(d)).forEach(d=>dishCnt[d]=(dishCnt[d]||0)+1);
+      dishes.filter(d=>!isDrink(d)).forEach(d=>{dishCnt[d]=(dishCnt[d]||0)+1;addRest(d,r.rest);});
     }else{
       if(r.rest)restCnt[r.rest]=(restCnt[r.rest]||0)+1;
-      dishes.forEach(d=>dishCnt[d]=(dishCnt[d]||0)+1);
+      dishes.forEach(d=>{dishCnt[d]=(dishCnt[d]||0)+1;addRest(d,r.rest);});
     }
   });
   const srt=o=>Object.entries(o).sort((x,y)=>y[1]-x[1]);
-  return {rest:srt(restCnt),dish:srt(dishCnt),label,meal,mode};
+  return {rest:srt(restCnt),dish:srt(dishCnt),dishRests,label,meal,mode};
 }
 const CROWN_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.6 7.6a1 1 0 0 1 1.5-.86l3.6 2.2 3.5-4.9a1 1 0 0 1 1.6 0l3.5 4.9 3.6-2.2a1 1 0 0 1 1.5.86l-1.7 9.9a1 1 0 0 1-1 .84H5.3a1 1 0 0 1-1-.84L2.6 7.6Z"/></svg>`;
-function rankNo(i){
-  if(i===0)return `<div class="crown gold">${CROWN_SVG}</div>`;
-  if(i===1)return `<div class="crown silver">${CROWN_SVG}</div>`;
-  if(i===2)return `<div class="crown bronze">${CROWN_SVG}</div>`;
-  return `<div class="rank-no">${i+1}</div>`;
-}
-function rankItem([name,c],i,max){
-  return `<div class="rank-item">
-      ${rankNo(i)}
-      <div class="rank-body">
-        <div class="rank-name"><b>${esc(name)}</b><span>${c} 次</span></div>
-        <div class="bar"><i style="width:${max?c/max*100:0}%"></i></div>
+let rankKind='rest'; /* rest=餐厅 dish=菜品 */
+function rankRowHTML([name,c],i,max,sub){
+  const no=i<3
+    ?`<div class="rl-no top${i+1}">${CROWN_SVG}</div>`
+    :`<div class="rl-no">${i+1}</div>`;
+  return `<div class="rl-item">
+      ${no}
+      <div class="rl-body">
+        <div class="rl-top"><b>${esc(name)}</b><i>${c} 次</i></div>
+        <div class="rl-bar"><span style="width:${max?Math.max(7,c/max*100):0}%"></span></div>
+        ${sub?`<div class="rl-sub">${esc(sub)}</div>`:''}
       </div>
     </div>`;
+}
+/* 菜品出处：按次数取前 3 家餐厅 */
+function dishRestText(name,d){
+  const m=d&&d.dishRests&&d.dishRests[name];
+  if(!m)return '';
+  return Object.entries(m).sort((x,y)=>y[1]-x[1]).slice(0,3).map(x=>x[0]).join(' · ');
+}
+function scopeText(p,d){
+  if(p==='all')return '全部记录';
+  if(p==='year')return d.label;
+  if(p==='month')return d.label;
+  const parts=(d.label||'').split(' ~ ');
+  const f=x=>x.slice(5).replace('-','.');
+  return parts.length===2?f(parts[0])+' – '+f(parts[1]):d.label;
 }
 function renderRank(){
   const p=document.querySelector('#periodTabs .on').dataset.p;
   const d=rankData(p);
+  rankAll.rest=d.rest;rankAll.dish=d.dish;rankAll.dishRests=d.dishRests;
   document.getElementById('periodLabel').textContent='统计范围：'+d.label;
-  rankAll.rest=d.rest;
-  rankAll.dish=d.dish;
-  /* 标题/副标题随筛选变化 */
+  document.getElementById('rankScope').textContent=scopeText(p,d);
   const mode=d.mode, mealName={all:'',b:'早餐',l:'午餐',d:'晚餐'}[d.meal];
   const drinkOnly=mode==='drink', mealOnly=mode==='meal';
-  document.getElementById('restTitle').textContent=drinkOnly?'饮品店排行':'饭店排行';
-  document.getElementById('dishTitle').textContent=drinkOnly?'饮品排行':(mealOnly?'正餐菜品排行':'菜品排行');
+  const pName={week:'本周',month:'本月',year:'今年',all:'全部'}[p]||'这段时间';
+  document.querySelector('.rank-main').classList.toggle('kind-rest',rankKind==='rest');
+
+  const arr=rankKind==='rest'?d.rest:d.dish;
+  const list=document.getElementById('rankList');
+  const allBtn=document.getElementById('rankAllBtn');
+  if(!arr.length){
+    list.innerHTML=`<div class="empty-rank">${
+      drinkOnly?pName+'还没有饮品记录，喝一杯再去记一笔吧':
+      mealOnly?pName+'的正餐还没有记录，去食历补一笔吧':
+      rankKind==='dish'?(mealName?pName+'的'+mealName+'还没有菜品记录':pName+'还没有菜品记录'):
+      (mealName?pName+'的'+mealName+'还没有记录':pName+'还没有记录')}</div>`;
+    allBtn.hidden=true;
+  }else{
+    const max=arr[0][1];
+    list.innerHTML=arr.slice(0,8)
+      .map((e,i)=>rankRowHTML(e,i,max,rankKind==='dish'?dishRestText(e[0],d):'')).join('');
+    allBtn.hidden=arr.length<=8;
+    allBtn.textContent=`查看全部 ${arr.length} 项 ›`;
+  }
   const noteText=
     (drinkOnly?'已自动识别饮品记录（奶茶 / 咖啡 / 饮料 / 糖水 / 酒）':
      mealOnly?'只看正餐 · 已自动排除饮品（含奶茶 / 咖啡 / 糖水）':'')
     +(mealName?((drinkOnly||mealOnly)?' · ':'')+'仅统计'+mealName:'');
-  const pName={week:'本周',month:'本月',year:'本年',all:'全部'}[p]||'这段时间';
-  /* 主页只显示前八；前三用金银铜皇冠 */
-  const mkTop=arr=>{
-    if(!arr.length)return `<div class="empty-rank">${
-      drinkOnly?pName+'还没有饮品记录，喝一杯再去记一笔吧':
-      mealOnly?pName+'的正餐还没有记录，去食历补一笔吧':
-      mealName?pName+'的'+mealName+'还没有记录':pName+'还没有记录，去食历上补一笔吧'}</div>`;
-    return arr.slice(0,8).map((e,i)=>rankItem(e,i,arr[0][1])).join('');
-  };
-  document.getElementById('rankRest').innerHTML=mkTop(rankAll.rest);
-  document.getElementById('rankDish').innerHTML=mkTop(rankAll.dish);
-  const more=(id,arr)=>{
-    const el=document.getElementById(id);
-    el.innerHTML=arr.length>8?`共 <b>${arr.length}</b> 项 · 查看全部 ›`:(arr.length?`共 <b>${arr.length}</b> 项`:'');
-  };
-  more('moreRest',rankAll.rest);
-  more('moreDish',rankAll.dish);
   /* 周期提示：空结果 → 找有数据的周期；有结果但"全部"更多 → 给全部入口，避免以为漏了记录 */
   let hint='';
   if(mode!=='all'){
@@ -1911,7 +1994,7 @@ function renderRank(){
         const t=rankData(q);
         const n=t.rest.length+t.dish.length;
         if(n){
-          hint=`<button class="note-link" data-goto="${q}">切到${{week:'本周',month:'本月',year:'本年',all:'全部'}[q]}查看（${n} 项）</button>`;
+          hint=`<button class="note-link" data-goto="${q}">切到${{week:'本周',month:'本月',year:'今年',all:'全部'}[q]}查看（${n} 项）</button>`;
           break;
         }
       }
@@ -1923,6 +2006,14 @@ function renderRank(){
   }
   document.getElementById('filterNote').innerHTML=noteText+(hint?(noteText?' · ':'')+hint:'');
 }
+/* 餐厅 / 菜品 切换 */
+document.querySelectorAll('#kindSeg button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#kindSeg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  rankKind=b.dataset.k;
+  renderRank();
+});
+document.getElementById('rankAllBtn').onclick=()=>openRankAll();
 /* 餐次 / 内容（饮品 / 正餐）筛选：饮品与正餐互斥 */
 function syncModePills(){
   document.getElementById('drinkToggle').classList.toggle('on',rankFilter.mode==='drink');
@@ -1950,26 +2041,26 @@ document.getElementById('filterNote').addEventListener('click',e=>{
   document.querySelectorAll('#periodTabs button[data-p]').forEach(x=>x.classList.toggle('on',x.dataset.p===q));
   renderRank();
 });
-/* 点击整张卡片 → 完整排行 */
-function openRankAll(k){
-  const arr=rankAll[k]||[];
-  const isRest=k==='rest';
+/* 查看全部 → 完整排行（跟随当前 餐厅/菜品 切换） */
+function openRankAll(){
+  const isRest=rankKind==='rest';
+  const arr=(isRest?rankAll.rest:rankAll.dish)||[];
   const mode=rankFilter.mode, mealName={all:'',b:'早餐',l:'午餐',d:'晚餐'}[rankFilter.meal];
   const drinkOnly=mode==='drink', mealOnly=mode==='meal';
   document.getElementById('rankAllTitle').textContent=
     drinkOnly?(isRest?'饮品店排行榜':'饮品排行榜'):
-    (isRest?'饭店排行榜':(mealOnly?'正餐菜品排行':'菜品排行榜'));
-  const label=document.getElementById('periodLabel').textContent.replace('统计范围：','');
+    (isRest?'餐厅排行榜':(mealOnly?'正餐菜品排行':'菜品排行榜'));
+  const label=document.getElementById('rankScope').textContent;
   const extra=[drinkOnly?'仅饮品':mealOnly?'仅正餐':'',mealName?'仅'+mealName:''].filter(Boolean).join(' · ');
   document.getElementById('rankAllSub').textContent=`${label}${extra?' · '+extra:''} · 共 ${arr.length} 项`;
   document.getElementById('rankAllList').innerHTML=arr.length
-    ?arr.map((e,i)=>rankItem(e,i,arr[0][1])).join('')+`<div class="rank-all-end">— 共 ${arr.length} 项，已全部显示 —</div>`
+    ?arr.map((e,i)=>rankRowHTML(e,i,arr[0][1],isRest?'':dishRestText(e[0],rankAll))).join('')
+      +`<div class="rank-all-end">— 共 ${arr.length} 项，已全部显示 —</div>`
     :`<div class="empty-rank">${drinkOnly?'这段时间还没有饮品记录':mealOnly?'这段时间还没有正餐记录':'这段时间还没有记录'}，去食历上补一笔吧</div>`;
   document.getElementById('rankOverlay').classList.toggle('rest',isRest);
   document.getElementById('rankOverlay').classList.add('on');
   document.getElementById('rankAllList').scrollTop=0;
 }
-document.querySelectorAll('.rank-card').forEach(c=>c.onclick=()=>openRankAll(c.dataset.k));
 document.getElementById('closeRankAll').onclick=()=>document.getElementById('rankOverlay').classList.remove('on');
 document.getElementById('rankOverlay').onclick=e=>{if(e.target.id==='rankOverlay')document.getElementById('rankOverlay').classList.remove('on');};
 document.querySelectorAll('#periodTabs button[data-p]').forEach(b=>b.onclick=()=>{
