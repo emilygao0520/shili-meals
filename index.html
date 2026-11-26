@@ -221,6 +221,41 @@
   .btn.danger{background:var(--pink);color:#fff;}
   .btn.danger:hover{filter:brightness(1.06);}
 
+  /* ---------- 转发分享 ---------- */
+  [hidden]{display:none!important;}
+  .share-btn{
+    width:34px;height:34px;border-radius:11px;border:1px solid var(--line);background:#fff;
+    color:var(--ink-soft);cursor:pointer;font-size:15px;line-height:1;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;transition:.15s;font-family:inherit;
+  }
+  .share-btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px);}
+  #shareOverlay{align-items:center;padding:16px;}
+  .share-modal{width:440px;max-height:calc(100vh - 36px);display:flex;flex-direction:column;overflow:hidden;}
+  .share-pick{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+  .share-opt{
+    display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:#fff;
+    border-radius:14px;padding:13px 14px;cursor:pointer;font-family:inherit;transition:.15s;
+  }
+  .share-opt:hover{border-color:var(--accent);box-shadow:0 6px 18px rgba(44,46,54,.07);}
+  .share-opt .ic{
+    width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--hand);font-size:17px;color:#fff;flex:none;
+  }
+  .share-opt .ic.a{background:var(--accent);}
+  .share-opt .ic.b{background:var(--green);}
+  .share-opt .ic.c{background:var(--blue);}
+  .share-opt b{display:block;font-size:14px;font-weight:600;color:var(--ink);}
+  .share-opt i{display:block;font-style:normal;font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .share-preview{display:flex;flex-direction:column;gap:10px;margin-top:10px;min-height:0;overflow:auto;}
+  .share-preview img{
+    width:100%;max-height:min(52vh,480px);object-fit:contain;border-radius:12px;
+    background:#eff1f4;box-shadow:0 6px 18px rgba(44,46,54,.10);
+  }
+  .share-tip{font-size:11.5px;color:var(--ink-soft);line-height:1.7;}
+  .share-acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+  .share-acts .btn{padding:9px 16px;font-size:13px;}
+  .share-busy{text-align:center;color:var(--ink-soft);font-size:13px;padding:30px 0;font-family:var(--hand);letter-spacing:1px;}
+
   /* ---------- ranking ---------- */
   .period-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
   .period-tabs button{
@@ -587,6 +622,11 @@
   .dv-photo{height:132px;}
   .clear-link{font-size:11px;}
   #clearOverlay .modal{width:100%;}
+  /* 转发分享 */
+  .share-btn{width:30px;height:30px;font-size:14px;border-radius:9px;}
+  .share-modal{width:100%;}
+  .share-opt{padding:11px 12px;}
+  .share-preview img{max-height:44vh;}
   .composer,.post{padding:14px;}
   .auth-card{padding:26px 20px;}
 }
@@ -608,6 +648,7 @@
       <button data-view="rank">排行</button>
       <button data-view="circle">食客圈</button>
     </div>
+    <button class="share-btn" id="shareBtn" title="转发分享">↗</button>
     <button class="avatar-btn guest" id="avatarBtn" title="登录 / 个人主页">客</button>
   </div>
 </header>
@@ -716,6 +757,40 @@
       <button class="btn ghost" id="clearCancel2">取消</button>
       <button class="btn danger" id="clearDo">确认清空</button>
     </div>
+  </div>
+</div>
+
+<!-- ========== 转发分享 ========== -->
+<div class="overlay" id="shareOverlay">
+  <div class="modal share-modal">
+    <div class="modal-head">
+      <h2 id="shareTitle">转发</h2>
+      <button class="close-x" id="shareClose">✕</button>
+    </div>
+    <div class="share-pick" id="sharePick">
+      <button class="share-opt" data-k="today">
+        <span class="ic a">今</span>
+        <span><b>今日记录</b><i>今天的三餐合一张手账卡</i></span>
+      </button>
+      <button class="share-opt" data-k="month">
+        <span class="ic b">月</span>
+        <span><b>本月日历</b><i>整个月的用餐轨迹一览</i></span>
+      </button>
+      <button class="share-opt" data-k="rank">
+        <span class="ic c">榜</span>
+        <span><b>排行页</b><i>饭店与菜品 Top 8（含金银铜）</i></span>
+      </button>
+    </div>
+    <div class="share-preview" id="sharePreview" hidden>
+      <img id="shareImg" alt="分享图">
+      <p class="share-tip">保存图片后，打开微信 →「发现」→「朋友圈」→ 从相册选择这张图发布即可（网页无法直接发到朋友圈）。</p>
+      <div class="share-acts">
+        <button class="btn ghost" id="shareReset">重新选择</button>
+        <button class="btn ghost" id="shareNative" hidden>系统分享</button>
+        <button class="btn primary" id="shareSave">保存图片</button>
+      </div>
+    </div>
+    <div class="share-busy" id="shareBusy" hidden>正在生成分享图…</div>
   </div>
 </div>
 
@@ -828,7 +903,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v35</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v39</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1954,6 +2029,296 @@ document.getElementById('clearInput').onkeydown=e=>{if(e.key==='Enter')doClearAl
 document.getElementById('clearCancel').onclick=closeClearConfirm;
 document.getElementById('clearCancel2').onclick=closeClearConfirm;
 document.getElementById('clearOverlay').onclick=e=>{if(e.target.id==='clearOverlay')closeClearConfirm();};
+
+/* ================= 转发分享（Canvas 生成分享图） ================= */
+const SH_W=1080, SH_H=1440;
+const SHF='"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif';
+const SHK='"Kaiti SC","STKaiti","KaiTi","楷体",serif';
+const SC={ink:'#2c2e36',mid:'#4c515a',soft:'#8b8f99',faint:'#b6bac2',
+  accent:'#d9635e',green:'#6fa084',blue:'#8598b8',gold:'#d9a021',silver:'#9aa1ac',bronze:'#bd7c4c'};
+const mealColor=k=>k==='b'?SC.accent:k==='l'?SC.green:SC.blue;
+
+function shCanvas(){const c=document.createElement('canvas');c.width=SH_W;c.height=SH_H;return c;}
+function shRR(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function shImg(src){return new Promise(res=>{
+  if(!src)return res(null);
+  const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;
+});}
+function shCover(ctx,img,x,y,w,h,r){
+  if(!img)return;
+  ctx.save();shRR(ctx,x,y,w,h,r);ctx.clip();
+  const s=Math.max(w/img.width,h/img.height),iw=img.width*s,ih=img.height*s;
+  ctx.drawImage(img,x+(w-iw)/2,y+(h-ih)/2,iw,ih);
+  ctx.restore();
+}
+function shBg(ctx){
+  const g=ctx.createLinearGradient(0,0,SH_W,SH_H);
+  g.addColorStop(0,'#f8f9fb');g.addColorStop(1,'#eef0f4');
+  ctx.fillStyle=g;ctx.fillRect(0,0,SH_W,SH_H);
+  const r1=ctx.createRadialGradient(160,90,10,160,90,470);
+  r1.addColorStop(0,'rgba(217,99,94,.10)');r1.addColorStop(1,'rgba(217,99,94,0)');
+  ctx.fillStyle=r1;ctx.fillRect(0,0,700,700);
+  const r2=ctx.createRadialGradient(930,1350,10,930,1350,470);
+  r2.addColorStop(0,'rgba(111,160,132,.12)');r2.addColorStop(1,'rgba(111,160,132,0)');
+  ctx.fillStyle=r2;ctx.fillRect(400,900,680,540);
+}
+function shHeader(ctx,title,sub){
+  ctx.save();ctx.translate(100,104);ctx.rotate(-4*Math.PI/180);
+  ctx.fillStyle=SC.accent;shRR(ctx,-36,-36,72,72,22);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 42px '+SHK;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('食',0,4);ctx.restore();
+  ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillStyle=SC.soft;ctx.font='500 26px '+SHF;ctx.fillText('食历 · 三餐手账',160,74);
+  ctx.fillStyle=SC.ink;ctx.font='600 58px '+SHF;ctx.fillText(title,60,180);
+  if(sub){ctx.fillStyle=SC.soft;ctx.font='400 28px '+SHF;ctx.fillText(sub,62,258);}
+  ctx.strokeStyle='rgba(44,46,54,.07)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(60,306);ctx.lineTo(SH_W-60,306);ctx.stroke();
+}
+function shFooter(ctx,text){
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillStyle=SC.faint;ctx.font='400 25px '+SHF;ctx.fillText(text,SH_W/2,SH_H-74);
+}
+function shCut(ctx,text,maxW){
+  if(ctx.measureText(text).width<=maxW)return text;
+  let t=text;
+  while(t.length>1&&ctx.measureText(t+'…').width>maxW)t=t.slice(0,-1);
+  return t+'…';
+}
+function shWrap(ctx,text,x,y,maxW,lineH,maxLines,font,color){
+  ctx.font=font;ctx.fillStyle=color;ctx.textAlign='left';ctx.textBaseline='top';
+  const lines=[];let line='';
+  for(const ch of [...(text||'')]){
+    if(ctx.measureText(line+ch).width>maxW&&line){lines.push(line);line=ch;}
+    else line+=ch;
+  }
+  if(line)lines.push(line);
+  let out=lines;
+  if(out.length>maxLines){
+    out=lines.slice(0,maxLines);
+    out[maxLines-1]=shCut(ctx,out[maxLines-1]+'…',maxW);
+  }
+  out.forEach((l,i)=>ctx.fillText(l,x,y+i*lineH));
+  return y+out.length*lineH;
+}
+function shCrown(ctx,cx,cy,size,color){
+  ctx.save();ctx.translate(cx,cy);const s=size/24;ctx.scale(s,s);
+  ctx.fillStyle=color;ctx.beginPath();
+  ctx.moveTo(2.6,8.2);ctx.lineTo(6.4,10.6);ctx.lineTo(12,4.2);ctx.lineTo(17.6,10.6);
+  ctx.lineTo(21.4,8.2);ctx.lineTo(19.4,17.6);ctx.lineTo(4.6,17.6);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+/* 模板一：今日记录 */
+async function shareCanvasToday(){
+  const ds=todayStr();
+  const rows=MEALS.map(m=>({m,r:db.find(x=>x.date===ds&&x.meal===m.k)}))
+    .filter(x=>x.r&&(x.r.rest||x.r.dishes||x.r.note||x.r.img));
+  if(!rows.length)return null;
+  const c=shCanvas(),ctx=c.getContext('2d');
+  shBg(ctx);
+  const dt=new Date(ds+'T00:00:00');
+  shHeader(ctx,`${dt.getMonth()+1} 月 ${dt.getDate()} 日`,`星期${'日一二三四五六'[dt.getDay()]} · 今天的三餐`);
+  const imgs=await Promise.all(rows.map(x=>shImg(x.r.img)));
+  const cardH=290,gap=22,total=rows.length*cardH+(rows.length-1)*gap;
+  let y=Math.max(340,Math.round(340+(1120-340-total)/2));
+  rows.forEach((x,i)=>{
+    const col=mealColor(x.m.k),hasImg=!!imgs[i];
+    ctx.fillStyle='#fff';shRR(ctx,60,y,960,cardH,26);ctx.fill();
+    ctx.strokeStyle='rgba(44,46,54,.06)';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=col;shRR(ctx,60,y,10,cardH,6);ctx.fill();
+    ctx.fillStyle=col;shRR(ctx,96,y+32,108,40,12);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='500 23px '+SHK;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(x.m.name,150,y+53);
+    ctx.textAlign='left';ctx.textBaseline='top';
+    if(hasImg)shCover(ctx,imgs[i],700,y+26,290,cardH-52,18);
+    const tx=222,tw=hasImg?452:764;
+    if(x.r.rest){
+      ctx.font='600 34px '+SHF;ctx.fillStyle=SC.ink;
+      ctx.fillText(shCut(ctx,x.r.rest,tw),tx,y+30);
+    }
+    let ty=y+80;
+    if(x.r.dishes)ty=shWrap(ctx,x.r.dishes,tx,ty,tw,38,2,'400 27px '+SHF,SC.mid);
+    if(x.r.note)shWrap(ctx,x.r.note,tx,Math.min(ty+8,y+200),tw,36,2,'400 26px '+SHK,'#6d727a');
+    y+=cardH+gap;
+  });
+  shFooter(ctx,'一日三餐，皆值得被记录 · 食历');
+  return c;
+}
+/* 模板二：本月日历 */
+async function shareCanvasMonth(){
+  const Y=cur.getFullYear(),M=cur.getMonth(),pad=String(M+1).padStart(2,'0');
+  const first=new Date(Y,M,1).getDay(),cnt=new Date(Y,M+1,0).getDate();
+  const mRecs=db.filter(r=>r.date.startsWith(Y+'-'+pad));
+  if(!mRecs.length)return null;
+  const c=shCanvas(),ctx=c.getContext('2d');
+  shBg(ctx);
+  shHeader(ctx,`${Y} 年 ${M+1} 月`,'这个月，被好好吃过');
+  const x0=54,y0=352,cw=132,gp=9;
+  /* 根据本月行数（5 或 6 行）把格子高度撑满可用区域，避免下方大片空白 */
+  const rows=Math.ceil((first+cnt)/7);
+  const ch=Math.floor((1300-y0-(rows-1)*gp)/rows);
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ['日','一','二','三','四','五','六'].forEach((w,i)=>{
+    ctx.fillStyle=i===0?'#d95d5d':SC.soft;ctx.font='500 22px '+SHF;
+    ctx.fillText(w,x0+i*(cw+gp)+cw/2,y0-32);
+  });
+  const cells=[];
+  for(let d=1;d<=cnt;d++){
+    const ds=`${Y}-${pad}-${String(d).padStart(2,'0')}`;
+    cells.push({d,ds,rs:db.filter(r=>r.date===ds)});
+  }
+  const allImgs=await Promise.all(cells.map(cl=>Promise.all(cl.rs.map(r=>shImg(r.img)))));
+  cells.forEach((cl,ci)=>{
+    const idx=first+cl.d-1,row=Math.floor(idx/7),col=idx%7;
+    const x=x0+col*(cw+gp),yy=y0+row*(ch+gp),has=cl.rs.length>0;
+    ctx.fillStyle=has?'#fffdf8':'#ffffff';
+    shRR(ctx,x,yy,cw,ch,14);ctx.fill();
+    ctx.strokeStyle=has?'rgba(217,99,94,.35)':'rgba(44,46,54,.06)';
+    ctx.lineWidth=has?2:1.5;ctx.stroke();
+    ctx.fillStyle=has?SC.accent:'#a9aeb7';
+    ctx.font=(has?'600 ':'400 ')+'21px '+SHF;ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText(String(cl.d),x+11,yy+10);
+    /* 与 App 日历一致的三段式：上早/中中/下晚，图片铺满该段，纯文字用浅色带 */
+    const top=yy+48,bh=Math.max(18,(ch-58-8)/3);
+    MEALS.forEach((mm,mi)=>{
+      const ri=cl.rs.findIndex(z=>z.meal===mm.k);
+      if(ri<0)return;
+      const im=allImgs[ci][ri],by=top+mi*(bh+4);
+      const col=mealColor(mm.k);
+      if(im)shCover(ctx,im,x+11,by,cw-22,bh,5);
+      else{
+        ctx.fillStyle=col==='#d9635e'?'rgba(217,99,94,.16)':col==='#6fa084'?'rgba(111,160,132,.18)':'rgba(133,152,184,.18)';
+        shRR(ctx,x+11,by,cw-22,bh,5);ctx.fill();
+        ctx.fillStyle=col;shRR(ctx,x+11+(cw-22)*0.18,by+bh/2-2,(cw-22)*0.34,4,2);ctx.fill();
+      }
+    });
+  });
+  const days=new Set(mRecs.map(r=>r.date)).size;
+  shFooter(ctx,`本月 ${mRecs.length} 餐 · ${days} 天 · 食历`);
+  return c;
+}
+/* 模板三：排行页 */
+function shRankCol(ctx,arr,x,y,title,color){
+  const W=468,H=930;
+  ctx.fillStyle='#fff';shRR(ctx,x,y,W,H,26);ctx.fill();
+  ctx.strokeStyle='rgba(44,46,54,.06)';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle=color;shRR(ctx,x+28,y+28,6,28,3);ctx.fill();
+  ctx.fillStyle=SC.ink;ctx.font='600 30px '+SHF;ctx.textAlign='left';ctx.textBaseline='top';
+  ctx.fillText(title,x+48,y+24);
+  if(!arr.length){
+    ctx.fillStyle=SC.soft;ctx.font='400 24px '+SHK;
+    ctx.fillText('这段时间还没有记录',x+28,y+96);
+    return;
+  }
+  const max=arr[0][1];
+  arr.forEach(([name,cnt],i)=>{
+    const ry=y+90+i*102;
+    if(i<3){
+      ctx.fillStyle=i===0?'#fbf2dc':i===1?'#f0f1f4':'#f8ece2';
+      shRR(ctx,x+26,ry,46,46,12);ctx.fill();
+      shCrown(ctx,x+49,ry+23,26,i===0?SC.gold:i===1?SC.silver:SC.bronze);
+    }else{
+      ctx.fillStyle='#eef0f3';shRR(ctx,x+26,ry,46,46,12);ctx.fill();
+      ctx.fillStyle=SC.soft;ctx.font='600 22px '+SHF;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(String(i+1),x+49,ry+24);
+    }
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillStyle=SC.ink;ctx.font='500 26px '+SHF;
+    ctx.fillText(shCut(ctx,name,246),x+88,ry+6);
+    ctx.fillStyle=color;ctx.font='500 23px '+SHF;ctx.textAlign='right';
+    ctx.fillText(cnt+' 次',x+W-26,ry+8);
+    ctx.textAlign='left';
+    ctx.fillStyle='#eef0f3';shRR(ctx,x+88,ry+52,354,10,5);ctx.fill();
+    ctx.fillStyle=color;shRR(ctx,x+88,ry+52,Math.max(10,354*cnt/max),10,5);ctx.fill();
+  });
+}
+function shareCanvasRank(){
+  const p=document.querySelector('#periodTabs .on').dataset.p;
+  const {a,b,label}=periodRange(p);
+  const recs=db.filter(r=>r.date>=a&&r.date<=b);
+  const rest={},dish={};
+  recs.forEach(r=>{
+    if(r.rest)rest[r.rest]=(rest[r.rest]||0)+1;
+    (r.dishes||'').split(/[、,，;；\/\s]+/).forEach(d=>{d=d.trim();if(d)dish[d]=(dish[d]||0)+1;});
+  });
+  const srt=o=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,8);
+  const rs=srt(rest),ds=srt(dish);
+  if(!rs.length&&!ds.length)return null;
+  const c=shCanvas(),ctx=c.getContext('2d');
+  shBg(ctx);
+  shHeader(ctx,'饭店 & 菜品排行',label);
+  shRankCol(ctx,rs,54,352,'饭店排行',SC.green);
+  shRankCol(ctx,ds,558,352,'菜品排行',SC.accent);
+  shFooter(ctx,'按次数排序 · 前八名 · 食历');
+  return c;
+}
+
+/* ---- 弹层交互 ---- */
+let shareKind='today',shareDataUrl='';
+const shareBuilders={today:shareCanvasToday,month:shareCanvasMonth,rank:shareCanvasRank};
+const shareNames={today:'今日记录',month:'本月日历',rank:'排行页'};
+function resetShare(){
+  document.getElementById('sharePick').hidden=false;
+  document.getElementById('sharePreview').hidden=true;
+  document.getElementById('shareBusy').hidden=true;
+  document.getElementById('shareTitle').textContent='转发';
+}
+function dataUrlToFile(dataUrl,name){
+  const parts=dataUrl.split(','),mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/png';
+  const bin=atob(parts[1]),arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+  return new File([arr],name,{type:mime});
+}
+function setupNativeShare(){
+  const btn=document.getElementById('shareNative');
+  btn.hidden=true;btn.onclick=null;
+  try{
+    const file=dataUrlToFile(shareDataUrl,'食历-'+shareNames[shareKind]+'.png');
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      btn.hidden=false;
+      btn.onclick=()=>navigator.share({files:[file],title:'食历 · 三餐手账'}).catch(()=>{});
+    }
+  }catch(e){}
+}
+async function buildShare(kind){
+  shareKind=kind;
+  const pick=document.getElementById('sharePick'),busy=document.getElementById('shareBusy');
+  pick.hidden=true;busy.hidden=false;
+  let c=null;
+  try{c=await shareBuilders[kind]();}catch(e){console.warn('share build failed',e);}
+  busy.hidden=true;
+  if(!c){
+    pick.hidden=false;
+    toast(kind==='today'?'今天还没有记录，先去记一笔吧':kind==='month'?'这个月还没有记录，先去记几笔吧':'这段时间还没有排行数据');
+    return;
+  }
+  shareDataUrl=c.toDataURL('image/png');
+  document.getElementById('shareImg').src=shareDataUrl;
+  document.getElementById('shareTitle').textContent='转发 · '+shareNames[kind];
+  document.getElementById('sharePreview').hidden=false;
+  setupNativeShare();
+}
+document.getElementById('shareBtn').onclick=()=>{resetShare();document.getElementById('shareOverlay').classList.add('on');};
+document.getElementById('shareClose').onclick=()=>document.getElementById('shareOverlay').classList.remove('on');
+document.getElementById('shareOverlay').onclick=e=>{if(e.target.id==='shareOverlay')e.currentTarget.classList.remove('on');};
+document.getElementById('shareReset').onclick=resetShare;
+document.querySelectorAll('.share-opt').forEach(b=>b.onclick=()=>buildShare(b.dataset.k));
+document.getElementById('shareSave').onclick=()=>{
+  if(!shareDataUrl)return;
+  const a=document.createElement('a');
+  a.href=shareDataUrl;
+  a.download=`食历-${shareNames[shareKind]}-${todayStr()}.png`;
+  document.body.appendChild(a);a.click();a.remove();
+  toast('图片已保存，去朋友圈发布吧 ✦');
+};
 
 /* ================= 启动 ================= */
 (function boot(){
