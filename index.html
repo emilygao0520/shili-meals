@@ -291,6 +291,21 @@
   .bar i{display:block;height:100%;border-radius:4px;background:var(--accent);}
   .rank-card.rest .bar i{background:var(--green);}
   .empty-rank{padding:26px 0;text-align:center;color:var(--ink-soft);font-size:13px;font-family:var(--hand);}
+
+  /* ---------- 排行筛选 ---------- */
+  .rank-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 16px;}
+  .seg{display:flex;gap:4px;background:#eef0f3;padding:4px;border-radius:12px;}
+  .seg button{
+    border:none;background:transparent;border-radius:9px;padding:6px 12px;font-size:12.5px;
+    color:var(--ink-soft);cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s;
+  }
+  .seg button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(44,46,54,.09);}
+  .drink-toggle{
+    border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 15px;
+    font-size:12.5px;color:var(--ink-soft);cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap;
+  }
+  .drink-toggle.on{background:var(--green-soft);border-color:var(--green);color:#4c7a61;font-weight:600;}
+  .filter-note{font-size:11.5px;color:var(--ink-soft);width:100%;margin-top:-2px;letter-spacing:.3px;}
   /* 卡片可点击查看完整排行 */
   .rank-card{cursor:pointer;transition:.16s;}
   .rank-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(44,46,54,.10);}
@@ -612,6 +627,12 @@
   #view-cal .day .zone .th{border-radius:4px;}
   #view-cal .day .tape{width:24px;height:10px;left:9px;top:-5px;}
   .rank-card{padding:14px;}
+  /* 排行筛选条 */
+  .rank-filters{gap:6px;margin-bottom:12px;}
+  .seg{padding:3px;}
+  .seg button{padding:5px 9px;font-size:11.5px;}
+  .drink-toggle{padding:6px 12px;font-size:11.5px;}
+  .filter-note{font-size:11px;}
   .modal{padding:18px 14px;}
   /* 日记手账展示页 */
   #dayOverlay .modal{max-height:calc(100dvh - 28px);padding:0;}
@@ -681,15 +702,25 @@
       <button data-p="all">全部</button>
       <span class="period-label" id="periodLabel"></span>
     </div>
+    <div class="rank-filters">
+      <div class="seg" id="mealFilter">
+        <button data-m="all" class="on">全部餐次</button>
+        <button data-m="b">早餐</button>
+        <button data-m="l">午餐</button>
+        <button data-m="d">晚餐</button>
+      </div>
+      <button class="drink-toggle" id="drinkToggle" title="自动识别奶茶 / 咖啡 / 饮料，无需手动打标签">只看饮品</button>
+      <div class="filter-note" id="filterNote"></div>
+    </div>
     <div class="rank-wrap">
       <div class="rank-card rest" data-k="rest" title="点击查看完整排行">
-        <h3>饭店排行<span class="rank-more" id="moreRest"></span></h3>
-        <p class="sub">按用餐次数排序 · 光顾最多的地方</p>
+        <h3><span id="restTitle">饭店排行</span><span class="rank-more" id="moreRest"></span></h3>
+        <p class="sub" id="restSub">按用餐次数排序 · 光顾最多的地方</p>
         <div id="rankRest"></div>
       </div>
       <div class="rank-card" data-k="dish" title="点击查看完整排行">
-        <h3>菜品排行<span class="rank-more" id="moreDish"></span></h3>
-        <p class="sub">按点单次数排序 · 最常出现在餐桌上的味道</p>
+        <h3><span id="dishTitle">菜品排行</span><span class="rank-more" id="moreDish"></span></h3>
+        <p class="sub" id="dishSub">按点单次数排序 · 最常出现在餐桌上的味道</p>
         <div id="rankDish"></div>
       </div>
     </div>
@@ -903,7 +934,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v39</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v41</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1571,6 +1602,69 @@ function periodRange(p){
 }
 /* 榜单数据（全量，供主卡片前八与"查看全部"弹窗共用） */
 let rankAll={rest:[],dish:[]};
+let rankFilter={meal:'all',drink:false};
+
+/* 饮品自动识别：品牌 + 品类关键词，命中即视为饮品（奶茶/咖啡/饮料/酒），无需用户打标签
+   —— 菜品用「品牌 + 品类词」判定；店铺另外只认品牌与店型词，避免"豆浆铺"这类早餐店被算成饮品店 */
+const DRINK_BRANDS=[
+  '喜茶','奈雪','蜜雪','茶百道','古茗','一点点','coco','都可','沪上阿姨','霸王茶姬','茶颜悦色',
+  '书亦','七分甜','乐乐茶','柠季','益禾堂','甜啦啦','阿水','快乐柠檬','桂桂茶','茶话弄',
+  '瑞幸','luckin','星巴克','starbucks','库迪','cotti','manner','tims','m stand','幸运咖','seesaw',
+  '皮爷','蓝瓶','挪瓦','nowwa','太平洋咖啡','咖世家','mccafe','麦咖啡','kcoffee','茶百道'
+];
+const DRINK_ITEMS=[
+  /* 奶茶 / 茶饮 */
+  '奶茶','奶盖','波霸','珍珠','芋泥','芋圆','果茶','水果茶','柠檬茶','茶饮','杨枝甘露','多肉葡萄',
+  '满杯','四季春','乌龙','奶绿','厚乳','轻乳','波波','芝士茶','手打柠檬','柠檬水','大红袍','茉莉',
+  '抹茶','白桃','葡萄','杨梅','草莓啵啵','杨枝','豆乳','生打椰','椰椰',
+  /* 咖啡 */
+  '咖啡','拿铁','美式','摩卡','卡布','奇诺','澳白','冷萃','生椰','厚椰','浓缩','手冲','挂耳',
+  '馥芮白','dirty','冰博客','燕麦奶','椰云','丝绒','黑咖','白咖','espresso','latte','americano',
+  'flat white','mocha','cappuccino','短笛','piccolo','冰滴','氮气',
+  /* 其他饮料 */
+  '可乐','雪碧','芬达','果汁','鲜榨','气泡水','苏打','汽水','酸奶','养乐多','元气森林','冰红茶',
+  '王老吉','加多宝','椰汁','椰奶','酸梅汤','果昔','冰沙','沙冰','矿泉水','纯净水','盐汽水',
+  '电解质','运动饮料','脉动','宝矿力','红牛','豆奶','豆浆','米浆','杏仁露','凉茶','蜂蜜水',
+  '奶昔','思慕雪','特调','饮品','饮料','鲜奶','牛奶','燕麦饮','植物奶','茶π',
+  /* 含酒精 */
+  '啤酒','精酿','鸡尾酒','红酒','白葡萄','威士忌','清酒','梅酒','果酒','伏特加','朗姆',
+  '莫吉托','highball','生啤','起泡酒','香槟'
+];
+/* 店铺判定：只认品牌与「店型」词，不认单个产品词 */
+const DRINK_SHOP_WORDS=[
+  '奶茶店','奶茶铺','茶饮','饮品店','饮品','咖啡店','咖啡馆','咖啡','果汁店','果汁','果茶',
+  '水吧','茶铺','冰室','茶馆','茶室','饮料','糖水','鲜榨','雪冰','果饮','茶坊','奶茶工坊'
+];
+const norm=s=>(s||'').toLowerCase().replace(/\s+/g,'');
+function isDrink(name){ /* 菜品 / 单品是否饮品 */
+  const t=norm(name);
+  if(!t)return false;
+  return DRINK_BRANDS.some(w=>t.includes(norm(w)))||DRINK_ITEMS.some(w=>t.includes(norm(w)));
+}
+function isDrinkShop(name){ /* 饭店是否饮品店 */
+  const t=norm(name);
+  if(!t)return false;
+  return DRINK_BRANDS.some(w=>t.includes(norm(w)))||DRINK_SHOP_WORDS.some(w=>t.includes(norm(w)));
+}
+/* 按当前时间档 + 餐次 + 饮品筛选，统一算出一份榜单（主卡片 / 弹窗 / 分享图共用） */
+function rankData(p){
+  const {a,b,label}=periodRange(p);
+  const meal=rankFilter.meal, drinkOnly=rankFilter.drink;
+  const recs=db.filter(r=>r.date>=a&&r.date<=b&&(meal==='all'||r.meal===meal));
+  const restCnt={},dishCnt={};
+  recs.forEach(r=>{
+    const dishes=(r.dishes||'').split(/[、,，;；\/\s]+/).map(s=>s.trim()).filter(Boolean);
+    if(drinkOnly){
+      if(r.rest&&isDrinkShop(r.rest))restCnt[r.rest]=(restCnt[r.rest]||0)+1;
+      dishes.filter(isDrink).forEach(d=>dishCnt[d]=(dishCnt[d]||0)+1);
+    }else{
+      if(r.rest)restCnt[r.rest]=(restCnt[r.rest]||0)+1;
+      dishes.forEach(d=>dishCnt[d]=(dishCnt[d]||0)+1);
+    }
+  });
+  const srt=o=>Object.entries(o).sort((x,y)=>y[1]-x[1]);
+  return {rest:srt(restCnt),dish:srt(dishCnt),label,meal,drinkOnly};
+}
 const CROWN_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.6 7.6a1 1 0 0 1 1.5-.86l3.6 2.2 3.5-4.9a1 1 0 0 1 1.6 0l3.5 4.9 3.6-2.2a1 1 0 0 1 1.5.86l-1.7 9.9a1 1 0 0 1-1 .84H5.3a1 1 0 0 1-1-.84L2.6 7.6Z"/></svg>`;
 function rankNo(i){
   if(i===0)return `<div class="crown gold">${CROWN_SVG}</div>`;
@@ -1589,22 +1683,28 @@ function rankItem([name,c],i,max){
 }
 function renderRank(){
   const p=document.querySelector('#periodTabs .on').dataset.p;
-  const {a,b,label}=periodRange(p);
-  document.getElementById('periodLabel').textContent='统计范围：'+label;
-  const recs=db.filter(r=>r.date>=a&&r.date<=b);
-  const restCnt={},dishCnt={};
-  recs.forEach(r=>{
-    if(r.rest)restCnt[r.rest]=(restCnt[r.rest]||0)+1;
-    (r.dishes||'').split(/[、,，;；\/\s]+/).forEach(d=>{
-      d=d.trim();if(d)dishCnt[d]=(dishCnt[d]||0)+1;
-    });
-  });
-  const sortCnt=obj=>Object.entries(obj).sort((x,y)=>y[1]-x[1]);
-  rankAll.rest=sortCnt(restCnt);
-  rankAll.dish=sortCnt(dishCnt);
+  const d=rankData(p);
+  document.getElementById('periodLabel').textContent='统计范围：'+d.label;
+  rankAll.rest=d.rest;
+  rankAll.dish=d.dish;
+  /* 标题/副标题随筛选变化 */
+  const drinkOnly=d.drinkOnly, mealName={all:'',b:'早餐',l:'午餐',d:'晚餐'}[d.meal];
+  document.getElementById('restTitle').textContent=drinkOnly?'饮品店排行':'饭店排行';
+  document.getElementById('dishTitle').textContent=drinkOnly?'饮品排行':'菜品排行';
+  document.getElementById('restSub').textContent=drinkOnly
+    ?'按购买次数排序 · 奶茶 / 咖啡 / 饮料（自动识别）'
+    :'按用餐次数排序 · 光顾最多的地方';
+  document.getElementById('dishSub').textContent=drinkOnly
+    ?'按点单次数排序 · 喝得最多的那一杯'
+    :'按点单次数排序 · 最常出现在餐桌上的味道';
+  document.getElementById('filterNote').textContent=
+    (drinkOnly?'已自动识别饮品记录（奶茶 / 咖啡 / 饮料 / 酒）':'')
+    +(mealName?(drinkOnly?' · ':'')+'仅统计'+mealName:'');
   /* 主页只显示前八；前三用金银铜皇冠 */
   const mkTop=arr=>{
-    if(!arr.length)return `<div class="empty-rank">这段日子里还没有记录，去食历上补一笔吧</div>`;
+    if(!arr.length)return `<div class="empty-rank">${
+      drinkOnly?'这段时间还没有饮品记录，喝一杯再去记一笔吧':
+      mealName?'这段时间的'+mealName+'还没有记录':'这段日子里还没有记录，去食历上补一笔吧'}</div>`;
     return arr.slice(0,8).map((e,i)=>rankItem(e,i,arr[0][1])).join('');
   };
   document.getElementById('rankRest').innerHTML=mkTop(rankAll.rest);
@@ -1616,13 +1716,28 @@ function renderRank(){
   more('moreRest',rankAll.rest);
   more('moreDish',rankAll.dish);
 }
+/* 餐次 / 饮品筛选 */
+document.querySelectorAll('#mealFilter button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#mealFilter button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  rankFilter.meal=b.dataset.m;
+  renderRank();
+});
+document.getElementById('drinkToggle').onclick=function(){
+  rankFilter.drink=!rankFilter.drink;
+  this.classList.toggle('on',rankFilter.drink);
+  renderRank();
+};
 /* 点击整张卡片 → 完整排行 */
 function openRankAll(k){
   const arr=rankAll[k]||[];
   const isRest=k==='rest';
-  document.getElementById('rankAllTitle').textContent=isRest?'饭店排行榜':'菜品排行榜';
+  const drinkOnly=rankFilter.drink, mealName={all:'',b:'早餐',l:'午餐',d:'晚餐'}[rankFilter.meal];
+  document.getElementById('rankAllTitle').textContent=
+    drinkOnly?(isRest?'饮品店排行榜':'饮品排行榜'):(isRest?'饭店排行榜':'菜品排行榜');
   const label=document.getElementById('periodLabel').textContent.replace('统计范围：','');
-  document.getElementById('rankAllSub').textContent=`${label} · 共 ${arr.length} 项`;
+  const extra=[drinkOnly?'仅饮品':'',mealName?'仅'+mealName:''].filter(Boolean).join(' · ');
+  document.getElementById('rankAllSub').textContent=`${label}${extra?' · '+extra:''} · 共 ${arr.length} 项`;
   document.getElementById('rankAllList').innerHTML=arr.length
     ?arr.map((e,i)=>rankItem(e,i,arr[0][1])).join('')+`<div class="rank-all-end">— 共 ${arr.length} 项，已全部显示 —</div>`
     :`<div class="empty-rank">这段时间还没有记录，去食历上补一笔吧</div>`;
@@ -2242,21 +2357,16 @@ function shRankCol(ctx,arr,x,y,title,color){
 }
 function shareCanvasRank(){
   const p=document.querySelector('#periodTabs .on').dataset.p;
-  const {a,b,label}=periodRange(p);
-  const recs=db.filter(r=>r.date>=a&&r.date<=b);
-  const rest={},dish={};
-  recs.forEach(r=>{
-    if(r.rest)rest[r.rest]=(rest[r.rest]||0)+1;
-    (r.dishes||'').split(/[、,，;；\/\s]+/).forEach(d=>{d=d.trim();if(d)dish[d]=(dish[d]||0)+1;});
-  });
-  const srt=o=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,8);
-  const rs=srt(rest),ds=srt(dish);
+  const d=rankData(p);
+  const rs=d.rest.slice(0,8),ds=d.dish.slice(0,8);
   if(!rs.length&&!ds.length)return null;
+  const mealName={all:'',b:'早餐',l:'午餐',d:'晚餐'}[d.meal];
+  const sub=[d.label,d.drinkOnly?'仅饮品':'',mealName?'仅'+mealName:''].filter(Boolean).join(' · ');
   const c=shCanvas(),ctx=c.getContext('2d');
   shBg(ctx);
-  shHeader(ctx,'饭店 & 菜品排行',label);
-  shRankCol(ctx,rs,54,352,'饭店排行',SC.green);
-  shRankCol(ctx,ds,558,352,'菜品排行',SC.accent);
+  shHeader(ctx,d.drinkOnly?'饮品排行':'饭店 & 菜品排行',sub);
+  shRankCol(ctx,rs,54,352,d.drinkOnly?'饮品店排行':'饭店排行',SC.green);
+  shRankCol(ctx,ds,558,352,d.drinkOnly?'饮品排行':'菜品排行',SC.accent);
   shFooter(ctx,'按次数排序 · 前八名 · 食历');
   return c;
 }
