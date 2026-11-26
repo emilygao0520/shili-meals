@@ -349,9 +349,9 @@
   .empty-rank{padding:26px 0;text-align:center;color:var(--ink-soft);font-size:13px;font-family:var(--hand);}
 
   /* ---------- 用餐排行（单一卡片 + 餐厅/菜品切换） ---------- */
-  .rank-main{padding:20px;cursor:default;display:flex;flex-direction:column;}
+  .rank-main{padding:20px;cursor:default;display:flex;flex-direction:column;flex:none;}
   @media(min-width:900px){.rank-main{max-width:720px;margin:0 auto;}}
-  /* 高度自适应：放不下时由 fitRank() 逐级加紧凑类，保证 6 行一屏 */
+  /* 高度自适应：放不下时由 applyRankTier() 逐级加紧凑类，保证 6 行一屏 */
   #view-rank.tight .rank-main{padding:12px 14px 10px;}
   #view-rank.tight .rank-head h3{font-size:18px;}
   #view-rank.tight .kind-seg{margin:10px 0 7px;}
@@ -1141,7 +1141,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v62</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v67</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1402,7 +1402,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   b.classList.add('on');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('view-'+b.dataset.view).classList.add('on');
-  if(b.dataset.view==='rank'){renderRank();fitRank();}
+  if(b.dataset.view==='rank')renderRank();
   if(b.dataset.view==='circle')renderFeed();
   if(b.dataset.view==='cal')fitCal();
 });
@@ -1509,21 +1509,23 @@ function fitCal(){
   card.style.height=(h>260?h:260)+'px';
 }
 /* 排行页一屏：内容（尤其菜品页多一行出处）超出可用高度时，逐级加紧凑类，保证不用下滑 */
-function fitRank(){
+function applyRankTier(){
   const sec=document.getElementById('view-rank');
-  if(!sec||sec.offsetParent===null)return;
+  if(!sec)return;
   sec.classList.remove('tight','tighter','ultra');
+  if(sec.offsetParent===null)return;
   if(!matchMedia('(max-width:640px)').matches)return;
   const card=sec.querySelector('.rank-main');
   const m=document.querySelector('main');
   const pb=parseFloat(getComputedStyle(m).paddingBottom)||0;
   const avail=m.getBoundingClientRect().bottom-pb-sec.getBoundingClientRect().top;
   if(!card||avail<=0)return;
-  if(card.getBoundingClientRect().height<=avail-2)return;
+  const fits=()=>card.getBoundingClientRect().height<=avail-2;
+  if(fits())return;
   sec.classList.add('tight');
-  if(card.getBoundingClientRect().height<=avail-2)return;
+  if(fits())return;
   sec.classList.add('tighter');
-  if(card.getBoundingClientRect().height<=avail-2)return;
+  if(fits())return;
   sec.classList.add('ultra');
 }
 /* 统计卡是异步渲染的，高度会变；观察其尺寸变化后重算，避免首次加载算早了溢出 */
@@ -1555,7 +1557,7 @@ addEventListener('resize',enforceWidth);
 let fitTimer=null;
 addEventListener('resize',()=>{
   fitCal();
-  fitRank();
+  if(document.getElementById('view-rank').classList.contains('on'))renderRank();
   clearTimeout(fitTimer);
   fitTimer=setTimeout(()=>{const g=document.getElementById('calGrid');if(g)fitCellTexts(g);},180);
 });
@@ -2032,23 +2034,27 @@ function renderRank(){
   const pName={week:'本周',month:'本月',year:'今年',all:'全部'}[p]||'这段时间';
   document.querySelector('.rank-main').classList.toggle('kind-rest',rankKind==='rest');
 
-  const arr=rankKind==='rest'?d.rest:d.dish;
-  const list=document.getElementById('rankList');
-  const allBtn=document.getElementById('rankAllBtn');
-  if(!arr.length){
-    list.innerHTML=`<div class="empty-rank">${
-      drinkOnly?pName+'还没有饮品记录，喝一杯再去记一笔吧':
-      mealOnly?pName+'的正餐还没有记录，去食历补一笔吧':
-      rankKind==='dish'?(mealName?pName+'的'+mealName+'还没有菜品记录':pName+'还没有菜品记录'):
-      (mealName?pName+'的'+mealName+'还没有记录':pName+'还没有记录')}</div>`;
-    allBtn.hidden=true;
-  }else{
+  const card=document.querySelector('.rank-main');
+  card.style.minHeight='';
+  const paint=kind=>{
+    const arr=kind==='rest'?d.rest:d.dish;
+    const list=document.getElementById('rankList');
+    const allBtn=document.getElementById('rankAllBtn');
+    if(!arr.length){
+      list.innerHTML=`<div class="empty-rank">${
+        drinkOnly?pName+'还没有饮品记录，喝一杯再去记一笔吧':
+        mealOnly?pName+'的正餐还没有记录，去食历补一笔吧':
+        kind==='dish'?(mealName?pName+'的'+mealName+'还没有菜品记录':pName+'还没有菜品记录'):
+        (mealName?pName+'的'+mealName+'还没有记录':pName+'还没有记录')}</div>`;
+      allBtn.hidden=true;
+      return;
+    }
     const max=arr[0][1];
     list.innerHTML=arr.slice(0,6)
-      .map((e,i)=>rankRowHTML(e,i,max,rankKind==='dish'?dishRestText(e[0],d):'')).join('');
+      .map((e,i)=>rankRowHTML(e,i,max,kind==='dish'?dishRestText(e[0],d):'\u00a0')).join('');
     allBtn.hidden=arr.length<=6;
     allBtn.textContent=`查看全部 ${arr.length} 项 ›`;
-  }
+  };
   const noteText=
     (drinkOnly?'已自动识别饮品记录（奶茶 / 咖啡 / 饮料 / 糖水 / 酒）':
      mealOnly?'只看正餐 · 已自动排除饮品（含奶茶 / 咖啡 / 糖水）':'')
@@ -2074,7 +2080,12 @@ function renderRank(){
     }
   }
   document.getElementById('filterNote').innerHTML=noteText+(hint?(noteText?' · ':'')+hint:'');
-  fitRank();
+  /* 框架固定：先按「菜品」（行更高）决定紧凑级别，再量两套布局取较高者锁死高度，
+     这样在 餐厅 / 菜品 间切换时卡片外框尺寸完全不变 */
+  card.style.height='';
+  card.style.minHeight='';
+  paint(rankKind);
+  applyRankTier();
 }
 /* 餐厅 / 菜品 切换 */
 document.querySelectorAll('#kindSeg button').forEach(b=>b.onclick=()=>{
