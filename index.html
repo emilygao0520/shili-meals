@@ -145,6 +145,82 @@
   .day .tape.g{background:rgba(111,160,132,.28);}
   .day .tape.p{background:rgba(217,99,94,.22);}
 
+  /* ---------- 日记手账展示页（只读） ---------- */
+  #dayOverlay .modal{
+    width:520px;max-height:calc(100vh - 64px);display:flex;flex-direction:column;
+    padding:0;overflow:hidden;background:#fffdf9;
+  }
+  .day-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:22px 22px 12px;position:relative;}
+  .day-top::before{
+    content:"";position:absolute;left:26px;top:6px;width:58px;height:13px;
+    background:rgba(217,99,94,.22);transform:rotate(-3deg);border-radius:2px;
+  }
+  .day-date{font-family:var(--hand);font-size:26px;letter-spacing:1px;line-height:1.15;}
+  .day-date small{font-family:inherit;font-size:13px;color:var(--ink-soft);margin-left:8px;letter-spacing:0;}
+  .day-sub{font-size:12px;color:var(--ink-soft);margin-top:5px;letter-spacing:.6px;}
+  .day-acts{display:flex;align-items:center;gap:8px;flex:none;}
+  .day-edit{
+    border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 14px;
+    font-size:12.5px;color:var(--ink);cursor:pointer;font-family:inherit;transition:.15s;
+    display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  }
+  .day-edit:hover{border-color:var(--accent);color:var(--accent);}
+  .day-body{flex:1;min-height:0;overflow-y:auto;padding:6px 22px 20px;}
+  .dv-meal{margin-bottom:18px;}
+  .dv-tag{
+    display:inline-flex;align-items:center;font-family:var(--hand);font-size:13px;
+    padding:2px 11px;border-radius:8px;color:#fff;margin-bottom:8px;letter-spacing:1px;
+  }
+  .dv-tag.b{background:var(--accent);}
+  .dv-tag.l{background:var(--green);}
+  .dv-tag.d{background:var(--blue);}
+  .dv-card{
+    background:#fff;border:1px solid #eceef2;border-radius:14px;padding:14px;
+    box-shadow:0 2px 10px rgba(44,46,54,.05);
+  }
+  .dv-photo{
+    width:100%;height:170px;border-radius:10px;background-size:cover;background-position:center;
+    margin-bottom:11px;box-shadow:0 1px 5px rgba(0,0,0,.13);
+  }
+  .dv-rest{font-size:15px;font-weight:600;letter-spacing:.3px;}
+  .dv-dishes{font-size:13.5px;color:#4c515a;margin-top:6px;line-height:1.65;}
+  .dv-note{
+    font-family:var(--hand);font-size:15px;color:#5a6068;line-height:1.95;margin-top:9px;
+    padding-top:9px;border-top:1px dashed #e8eaee;white-space:pre-wrap;
+  }
+  .dv-empty{text-align:center;padding:30px 10px 14px;color:var(--ink-soft);}
+  .dv-empty b{display:block;font-family:var(--hand);font-size:17px;color:var(--ink);margin-bottom:8px;letter-spacing:1px;}
+  .dv-empty p{font-size:12.5px;line-height:1.8;}
+
+  /* 主页「清空记录」入口：低调文字按钮，位于日历卡标题栏 */
+  .clear-link{
+    border:none;background:none;padding:3px 7px;margin-left:auto;border-radius:7px;
+    font-size:11px;color:#c0c4cb;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:.15s;
+  }
+  .clear-link:hover{color:var(--pink);background:var(--pink-soft);}
+  .cal-head .cal-nav{padding-left:9px;border-left:1px solid #e9ebef;}
+
+  /* 清空确认弹窗（二次验证） */
+  #clearOverlay{align-items:center;padding:16px;}
+  .clear-modal{width:400px;}
+  .clear-warn{font-size:13px;color:#5a6068;line-height:1.75;margin:8px 0 14px;}
+  .clear-warn b{color:var(--accent);}
+  .code-box{
+    display:flex;align-items:center;justify-content:space-between;
+    background:#f6f7f9;border:1px dashed #dfe2e8;border-radius:12px;padding:10px 16px;margin-bottom:12px;
+  }
+  .code-label{font-size:12px;color:var(--ink-soft);letter-spacing:1px;}
+  .code-val{font-family:var(--hand);font-size:26px;letter-spacing:9px;color:var(--ink);user-select:all;}
+  .clear-tip{font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  #clearInput{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+    font-size:17px;letter-spacing:7px;text-align:center;font-family:inherit;outline:none;background:#fff;
+  }
+  #clearInput:focus{border-color:var(--accent);}
+  .clear-err{min-height:16px;font-size:12px;color:var(--pink);margin-top:5px;text-align:center;}
+  .btn.danger{background:var(--pink);color:#fff;}
+  .btn.danger:hover{filter:brightness(1.06);}
+
   /* ---------- ranking ---------- */
   .period-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
   .period-tabs button{
@@ -502,6 +578,15 @@
   #view-cal .day .tape{width:24px;height:10px;left:9px;top:-5px;}
   .rank-card{padding:14px;}
   .modal{padding:18px 14px;}
+  /* 日记手账展示页 */
+  #dayOverlay .modal{max-height:calc(100dvh - 28px);padding:0;}
+  .day-top{padding:16px 14px 10px;}
+  .day-top::before{left:18px;}
+  .day-date{font-size:22px;}
+  .day-body{padding:4px 14px 14px;}
+  .dv-photo{height:132px;}
+  .clear-link{font-size:11px;}
+  #clearOverlay .modal{width:100%;}
   .composer,.post{padding:14px;}
   .auth-card{padding:26px 20px;}
 }
@@ -534,6 +619,7 @@
     <div class="cal-card">
       <div class="cal-head">
         <div class="cal-title" id="calTitle"></div>
+        <button class="clear-link" id="clearAll" title="清空全部记录">清空记录</button>
         <div class="cal-nav">
           <button id="prevM" title="上个月">‹</button>
           <button id="todayBtn" title="回到本月" style="width:auto;padding:0 14px;font-size:13px;">今天</button>
@@ -593,6 +679,45 @@
     </div>
   </section>
 </main>
+
+<!-- ========== 日记手账展示页（只读，右上角编辑） ========== -->
+<div class="overlay" id="dayOverlay">
+  <div class="modal">
+    <div class="day-top">
+      <div>
+        <div class="day-date" id="dayViewDate"></div>
+        <div class="day-sub" id="dayViewSub"></div>
+      </div>
+      <div class="day-acts">
+        <button class="day-edit" id="dayEditBtn">✎ 编辑</button>
+        <button class="close-x" id="closeDayView">✕</button>
+      </div>
+    </div>
+    <div class="day-body" id="dayViewBody"></div>
+  </div>
+</div>
+
+<!-- ========== 清空全部记录（验证码确认） ========== -->
+<div class="overlay" id="clearOverlay">
+  <div class="modal clear-modal">
+    <div class="modal-head">
+      <h2>清空全部记录</h2>
+      <button class="close-x" id="clearCancel">✕</button>
+    </div>
+    <p class="clear-warn">将删除<b id="clearScope">本机</b>全部饮食记录（含照片），删除后<b>无法恢复</b>。</p>
+    <div class="code-box">
+      <span class="code-label">验证码</span>
+      <span class="code-val" id="clearCode">----</span>
+    </div>
+    <p class="clear-tip">请输入上方验证码以确认操作：</p>
+    <input type="text" id="clearInput" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 位数字">
+    <div class="clear-err" id="clearErr"></div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="clearCancel2">取消</button>
+      <button class="btn danger" id="clearDo">确认清空</button>
+    </div>
+  </div>
+</div>
 
 <!-- ========== 记录弹窗 ========== -->
 <div class="overlay" id="overlay">
@@ -703,7 +828,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v33</span><span class="ver" id="diagTag"></span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v35</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1045,7 +1170,7 @@ function renderCal(){
     el.innerHTML=`${recs.length?`<div class="tape ${recs.some(x=>x.img)?'':'g'}"></div>`:''}
       <div class="num">${d}</div>
       ${zones}`;
-    el.onclick=()=>openModal(ds);
+    el.onclick=()=>openDayView(ds);
     grid.appendChild(el);
   }
   /* 补足 42 格（6 行）：月份首尾对齐，保证每个月格子高度/版式完全一致 */
@@ -1106,6 +1231,42 @@ fitCal();
 document.getElementById('prevM').onclick=()=>{cur.setMonth(cur.getMonth()-1);renderCal();};
 document.getElementById('nextM').onclick=()=>{cur.setMonth(cur.getMonth()+1);renderCal();};
 document.getElementById('todayBtn').onclick=()=>{cur=new Date();cur.setDate(1);renderCal();};
+
+/* ================= 日记手账展示页（只读） ================= */
+let dayViewDate=null, dayViewReturn=false;
+function openDayView(ds){
+  dayViewDate=ds;
+  const dt=new Date(ds+'T00:00:00');
+  const wd='日一二三四五六'[dt.getDay()];
+  document.getElementById('dayViewDate').innerHTML=
+    `${dt.getMonth()+1} 月 ${dt.getDate()} 日<small>星期${wd}</small>`;
+  document.getElementById('dayViewSub').textContent=
+    `${dt.getFullYear()} 年${ds===todayStr()?' · 今天':''}`;
+  const rows=MEALS.map(m=>({m,r:db.find(x=>x.date===ds&&x.meal===m.k)}))
+    .filter(x=>x.r&&(x.r.rest||x.r.dishes||x.r.note||x.r.img));
+  const body=document.getElementById('dayViewBody');
+  body.innerHTML=rows.length
+    ? rows.map(({m,r})=>`
+      <div class="dv-meal">
+        <div class="dv-tag ${m.k}">${m.name}</div>
+        <div class="dv-card">
+          ${r.img?`<div class="dv-photo" style="background-image:url('${r.img}')"></div>`:''}
+          ${r.rest?`<div class="dv-rest">${esc(r.rest)}</div>`:''}
+          ${r.dishes?`<div class="dv-dishes">${esc(r.dishes)}</div>`:''}
+          ${r.note?`<div class="dv-note">${esc(r.note)}</div>`:''}
+        </div>
+      </div>`).join('')
+    : `<div class="dv-empty"><b>这一天还没有记录</b><p>点右上角「编辑」，把这一天的味道写下来吧。</p></div>`;
+  document.getElementById('dayOverlay').classList.add('on');
+  body.scrollTop=0;
+}
+function closeDayView(){document.getElementById('dayOverlay').classList.remove('on');}
+document.getElementById('dayEditBtn').onclick=()=>{
+  const ds=dayViewDate;if(!ds)return;
+  closeDayView();dayViewReturn=true;openModal(ds);
+};
+document.getElementById('closeDayView').onclick=closeDayView;
+document.getElementById('dayOverlay').onclick=e=>{if(e.target.id==='dayOverlay')closeDayView();};
 
 /* ================= 记录弹窗 ================= */
 let editDate=null,editData={},modalDirty=false;
@@ -1313,6 +1474,8 @@ document.getElementById('saveDay').onclick=async function(){
   save();  /* 登录态也写本机缓存：刷新后云端加载失败时，回退显示的仍是最新数据 */
   modalDirty=false;
   renderCal();closeModal();
+  /* 从手账页进来的编辑：保存后回到该日手账页，看看写下的样子 */
+  if(dayViewReturn){dayViewReturn=false;openDayView(editDate);}
   toast(curPhone?'已记入云端手账，换个设备也能看到 ✦':'已记入手账，日历又被填满一格 ✦');
 };
 
@@ -1757,16 +1920,40 @@ document.getElementById('editProfile').onclick=()=>{
   authOverlay.classList.add('on');
 };
 
-/* ================= 清空 ================= */
-document.getElementById('clearAll').onclick=async ()=>{
-  if(!confirm('⚠️ 将清空'+(curPhone?'云端账号里':'本机')+'全部饮食记录（含照片），且无法恢复。确定继续吗？'))return;
-  if(!confirm('再次确认：真的要清空所有记录吗？'))return;
+/* ================= 清空（验证码二次确认） ================= */
+let clearCode='';
+function openClearConfirm(){
+  clearCode=String(Math.floor(1000+Math.random()*9000));
+  document.getElementById('clearCode').textContent=clearCode;
+  document.getElementById('clearScope').textContent=curPhone?'云端账号里':'本机';
+  document.getElementById('clearInput').value='';
+  document.getElementById('clearErr').textContent='';
+  document.getElementById('clearOverlay').classList.add('on');
+  setTimeout(()=>{try{document.getElementById('clearInput').focus();}catch(e){}},150);
+}
+function closeClearConfirm(){document.getElementById('clearOverlay').classList.remove('on');}
+async function doClearAll(){
+  const inp=document.getElementById('clearInput');
+  const v=(inp.value||'').trim();
+  const err=document.getElementById('clearErr');
+  if(v!==clearCode){err.textContent='验证码不正确，请核对后重新输入';inp.focus();inp.select();return;}
+  const btn=document.getElementById('clearDo');
+  btn.disabled=true;
   if(curPhone){
     try{await sbReq('DELETE','/records?phone=eq.'+curPhone);}
-    catch(e){toast('云端清空失败：'+e.message);return;}
+    catch(e){btn.disabled=false;err.textContent='云端清空失败：'+e.message;return;}
   }
-  db=[];save();renderCal();toast('已清空，从今天重新开始记录吧');
-};
+  db=[];save();renderCal();
+  btn.disabled=false;
+  closeClearConfirm();
+  toast('已清空，从今天重新开始记录吧');
+}
+document.getElementById('clearAll').onclick=openClearConfirm;
+document.getElementById('clearDo').onclick=doClearAll;
+document.getElementById('clearInput').onkeydown=e=>{if(e.key==='Enter')doClearAll();};
+document.getElementById('clearCancel').onclick=closeClearConfirm;
+document.getElementById('clearCancel2').onclick=closeClearConfirm;
+document.getElementById('clearOverlay').onclick=e=>{if(e.target.id==='clearOverlay')closeClearConfirm();};
 
 /* ================= 启动 ================= */
 (function boot(){
