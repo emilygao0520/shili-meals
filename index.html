@@ -307,6 +307,10 @@
   .drink-toggle.on{background:var(--green-soft);border-color:var(--green);color:#4c7a61;font-weight:600;}
   .drink-toggle.meal-pill.on{background:var(--pink-soft);border-color:var(--accent);color:#a34c48;}
   .filter-note{font-size:11.5px;color:var(--ink-soft);width:100%;margin-top:-2px;letter-spacing:.3px;}
+  .note-link{
+    border:none;background:none;padding:0 2px;font-family:inherit;cursor:pointer;
+    font-size:11.5px;color:var(--accent);text-decoration:underline;
+  }
   /* 卡片可点击查看完整排行 */
   .rank-card{cursor:pointer;transition:.16s;}
   .rank-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(44,46,54,.10);}
@@ -936,7 +940,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v46</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v48</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1642,7 +1646,7 @@ const DRINK_ITEMS=[
   '桃胶','雪蛤','红豆冰','绿豆爽','番薯糖水','椰汁西米','芒果西米','芋泥西米','椰奶冻',
   '甜酒酿','酒酿圆子','烧仙草冻','凉粉','绿豆沙冰',
   /* 咖啡 */
-  '咖啡','coffee','拿铁','latte','美式','americano','意式','摩卡','mocha','卡布','奇诺','cappuccino',
+  '咖啡','coffee','拿铁','latte','美式','americano','意式浓缩','意式咖啡','摩卡','mocha','卡布','奇诺','cappuccino',
   '澳白','馥芮白','flat white','玛奇朵','macchiato','康宝蓝','短笛','piccolo','氮气','手冲','挂耳',
   '冻干','浓缩','espresso','dirty','脏脏咖','阿芙佳朵','affogato','冰博客','燕麦奶','防弹咖啡',
   '咖啡液','咖啡豆',
@@ -1747,16 +1751,17 @@ function renderRank(){
   document.getElementById('dishSub').textContent=drinkOnly
     ?'按点单次数排序 · 喝得最多的那一杯'
     :(mealOnly?'按点单次数排序 · 已排除饮品':'按点单次数排序 · 最常出现在餐桌上的味道');
-  document.getElementById('filterNote').textContent=
+  const noteText=
     (drinkOnly?'已自动识别饮品记录（奶茶 / 咖啡 / 饮料 / 糖水 / 酒）':
      mealOnly?'只看正餐 · 已自动排除饮品（含奶茶 / 咖啡 / 糖水）':'')
     +(mealName?((drinkOnly||mealOnly)?' · ':'')+'仅统计'+mealName:'');
+  const pName={week:'本周',month:'本月',year:'本年',all:'全部'}[p]||'这段时间';
   /* 主页只显示前八；前三用金银铜皇冠 */
   const mkTop=arr=>{
     if(!arr.length)return `<div class="empty-rank">${
-      drinkOnly?'这段时间还没有饮品记录，喝一杯再去记一笔吧':
-      mealOnly?'这段时间的正餐还没有记录，去食历补一笔吧':
-      mealName?'这段时间的'+mealName+'还没有记录':'这段日子里还没有记录，去食历上补一笔吧'}</div>`;
+      drinkOnly?pName+'还没有饮品记录，喝一杯再去记一笔吧':
+      mealOnly?pName+'的正餐还没有记录，去食历补一笔吧':
+      mealName?pName+'的'+mealName+'还没有记录':pName+'还没有记录，去食历上补一笔吧'}</div>`;
     return arr.slice(0,8).map((e,i)=>rankItem(e,i,arr[0][1])).join('');
   };
   document.getElementById('rankRest').innerHTML=mkTop(rankAll.rest);
@@ -1767,6 +1772,27 @@ function renderRank(){
   };
   more('moreRest',rankAll.rest);
   more('moreDish',rankAll.dish);
+  /* 周期提示：空结果 → 找有数据的周期；有结果但"全部"更多 → 给全部入口，避免以为漏了记录 */
+  let hint='';
+  if(mode!=='all'){
+    const curN=rankAll.rest.length+rankAll.dish.length;
+    if(!curN){
+      for(const q of ['week','month','year','all']){
+        if(q===p)continue;
+        const t=rankData(q);
+        const n=t.rest.length+t.dish.length;
+        if(n){
+          hint=`<button class="note-link" data-goto="${q}">切到${{week:'本周',month:'本月',year:'本年',all:'全部'}[q]}查看（${n} 项）</button>`;
+          break;
+        }
+      }
+    }else if(p!=='all'){
+      const t=rankData('all');
+      const n=t.rest.length+t.dish.length;
+      if(n>curN) hint=`<button class="note-link" data-goto="all">全部 ${n} 项 ›</button>`;
+    }
+  }
+  document.getElementById('filterNote').innerHTML=noteText+(hint?(noteText?' · ':'')+hint:'');
 }
 /* 餐次 / 内容（饮品 / 正餐）筛选：饮品与正餐互斥 */
 function syncModePills(){
@@ -1787,6 +1813,14 @@ document.getElementById('mealToggle').onclick=()=>{
   rankFilter.mode=rankFilter.mode==='meal'?'all':'meal';
   syncModePills();renderRank();
 };
+/* 点击提示里的"切到本月/全部查看" */
+document.getElementById('filterNote').addEventListener('click',e=>{
+  const b=e.target.closest('[data-goto]');
+  if(!b)return;
+  const q=b.dataset.goto;
+  document.querySelectorAll('#periodTabs button[data-p]').forEach(x=>x.classList.toggle('on',x.dataset.p===q));
+  renderRank();
+});
 /* 点击整张卡片 → 完整排行 */
 function openRankAll(k){
   const arr=rankAll[k]||[];
