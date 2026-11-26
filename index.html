@@ -180,6 +180,34 @@
   .bar i{display:block;height:100%;border-radius:4px;background:var(--accent);}
   .rank-card.rest .bar i{background:var(--green);}
   .empty-rank{padding:26px 0;text-align:center;color:var(--ink-soft);font-size:13px;font-family:var(--hand);}
+  /* 卡片可点击查看完整排行 */
+  .rank-card{cursor:pointer;transition:.16s;}
+  .rank-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(44,46,54,.10);}
+  .rank-more{
+    font-size:12px;color:var(--ink-soft);font-family:inherit;font-weight:400;
+    margin-left:auto;display:inline-flex;align-items:center;gap:3px;flex:none;
+  }
+  .rank-more b{font-weight:600;color:var(--ink);}
+  /* 前三名皇冠：金 / 银 / 铜 */
+  .crown{
+    width:26px;height:26px;flex:none;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .crown svg{width:17px;height:17px;display:block;}
+  .crown.gold{background:#fbf2dc;}
+  .crown.gold svg{fill:#d9a021;}
+  .crown.silver{background:#f0f1f4;}
+  .crown.silver svg{fill:#9aa1ac;}
+  .crown.bronze{background:#f8ece2;}
+  .crown.bronze svg{fill:#bd7c4c;}
+  /* 完整排行弹窗 */
+  .rank-all-list{max-height:min(62vh,560px);overflow-y:auto;margin-top:2px;padding-right:2px;}
+  #rankOverlay.rest .rank-name span{color:var(--green);}
+  #rankOverlay.rest .bar i{background:var(--green);}
+  .rank-all-end{
+    text-align:center;font-size:11px;color:#c2c6ce;font-family:var(--hand);
+    letter-spacing:1px;padding:14px 0 2px;
+  }
 
   /* ---------- 食客圈 ---------- */
   .circle-wrap{max-width:640px;margin:0 auto;}
@@ -527,13 +555,13 @@
       <span class="period-label" id="periodLabel"></span>
     </div>
     <div class="rank-wrap">
-      <div class="rank-card rest">
-        <h3>饭店排行</h3>
+      <div class="rank-card rest" data-k="rest" title="点击查看完整排行">
+        <h3>饭店排行<span class="rank-more" id="moreRest"></span></h3>
         <p class="sub">按用餐次数排序 · 光顾最多的地方</p>
         <div id="rankRest"></div>
       </div>
-      <div class="rank-card">
-        <h3>菜品排行</h3>
+      <div class="rank-card" data-k="dish" title="点击查看完整排行">
+        <h3>菜品排行<span class="rank-more" id="moreDish"></span></h3>
         <p class="sub">按点单次数排序 · 最常出现在餐桌上的味道</p>
         <div id="rankDish"></div>
       </div>
@@ -579,6 +607,18 @@
       <button class="btn ghost" id="closeModal2">收起</button>
       <button class="btn primary" id="saveDay">保存这一天</button>
     </div>
+  </div>
+</div>
+
+<!-- ========== 完整排行弹窗 ========== -->
+<div class="overlay" id="rankOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="rankAllTitle">饭店排行榜</h2>
+      <button class="close-x" id="closeRankAll">✕</button>
+    </div>
+    <div class="modal-tip" id="rankAllSub"></div>
+    <div class="rank-all-list" id="rankAllList"></div>
   </div>
 </div>
 
@@ -663,7 +703,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v31</span><span class="ver" id="diagTag"></span><span class="danger" id="clearAll">清空全部记录</span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v33</span><span class="ver" id="diagTag"></span><span class="danger" id="clearAll">清空全部记录</span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1291,6 +1331,24 @@ function periodRange(p){
   function s0(d){return new Date(d.getFullYear(),d.getMonth(),1);}
   function s1(d){return new Date(d.getFullYear(),d.getMonth()+1,0);}
 }
+/* 榜单数据（全量，供主卡片前八与"查看全部"弹窗共用） */
+let rankAll={rest:[],dish:[]};
+const CROWN_SVG=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.6 7.6a1 1 0 0 1 1.5-.86l3.6 2.2 3.5-4.9a1 1 0 0 1 1.6 0l3.5 4.9 3.6-2.2a1 1 0 0 1 1.5.86l-1.7 9.9a1 1 0 0 1-1 .84H5.3a1 1 0 0 1-1-.84L2.6 7.6Z"/></svg>`;
+function rankNo(i){
+  if(i===0)return `<div class="crown gold">${CROWN_SVG}</div>`;
+  if(i===1)return `<div class="crown silver">${CROWN_SVG}</div>`;
+  if(i===2)return `<div class="crown bronze">${CROWN_SVG}</div>`;
+  return `<div class="rank-no">${i+1}</div>`;
+}
+function rankItem([name,c],i,max){
+  return `<div class="rank-item">
+      ${rankNo(i)}
+      <div class="rank-body">
+        <div class="rank-name"><b>${esc(name)}</b><span>${c} 次</span></div>
+        <div class="bar"><i style="width:${max?c/max*100:0}%"></i></div>
+      </div>
+    </div>`;
+}
 function renderRank(){
   const p=document.querySelector('#periodTabs .on').dataset.p;
   const {a,b,label}=periodRange(p);
@@ -1303,22 +1361,40 @@ function renderRank(){
       d=d.trim();if(d)dishCnt[d]=(dishCnt[d]||0)+1;
     });
   });
-  const mk=(obj)=>{
-    const arr=Object.entries(obj).sort((x,y)=>y[1]-x[1]).slice(0,8);
+  const sortCnt=obj=>Object.entries(obj).sort((x,y)=>y[1]-x[1]);
+  rankAll.rest=sortCnt(restCnt);
+  rankAll.dish=sortCnt(dishCnt);
+  /* 主页只显示前八；前三用金银铜皇冠 */
+  const mkTop=arr=>{
     if(!arr.length)return `<div class="empty-rank">这段日子里还没有记录，去食历上补一笔吧</div>`;
-    const max=arr[0][1];
-    return arr.map(([name,c],i)=>`
-      <div class="rank-item">
-        <div class="rank-no r${i+1}">${i+1}</div>
-        <div class="rank-body">
-          <div class="rank-name"><b>${esc(name)}</b><span>${c} 次</span></div>
-          <div class="bar"><i style="width:${c/max*100}%"></i></div>
-        </div>
-      </div>`).join('');
+    return arr.slice(0,8).map((e,i)=>rankItem(e,i,arr[0][1])).join('');
   };
-  document.getElementById('rankRest').innerHTML=mk(restCnt);
-  document.getElementById('rankDish').innerHTML=mk(dishCnt);
+  document.getElementById('rankRest').innerHTML=mkTop(rankAll.rest);
+  document.getElementById('rankDish').innerHTML=mkTop(rankAll.dish);
+  const more=(id,arr)=>{
+    const el=document.getElementById(id);
+    el.innerHTML=arr.length>8?`共 <b>${arr.length}</b> 项 · 查看全部 ›`:(arr.length?`共 <b>${arr.length}</b> 项`:'');
+  };
+  more('moreRest',rankAll.rest);
+  more('moreDish',rankAll.dish);
 }
+/* 点击整张卡片 → 完整排行 */
+function openRankAll(k){
+  const arr=rankAll[k]||[];
+  const isRest=k==='rest';
+  document.getElementById('rankAllTitle').textContent=isRest?'饭店排行榜':'菜品排行榜';
+  const label=document.getElementById('periodLabel').textContent.replace('统计范围：','');
+  document.getElementById('rankAllSub').textContent=`${label} · 共 ${arr.length} 项`;
+  document.getElementById('rankAllList').innerHTML=arr.length
+    ?arr.map((e,i)=>rankItem(e,i,arr[0][1])).join('')+`<div class="rank-all-end">— 共 ${arr.length} 项，已全部显示 —</div>`
+    :`<div class="empty-rank">这段时间还没有记录，去食历上补一笔吧</div>`;
+  document.getElementById('rankOverlay').classList.toggle('rest',isRest);
+  document.getElementById('rankOverlay').classList.add('on');
+  document.getElementById('rankAllList').scrollTop=0;
+}
+document.querySelectorAll('.rank-card').forEach(c=>c.onclick=()=>openRankAll(c.dataset.k));
+document.getElementById('closeRankAll').onclick=()=>document.getElementById('rankOverlay').classList.remove('on');
+document.getElementById('rankOverlay').onclick=e=>{if(e.target.id==='rankOverlay')document.getElementById('rankOverlay').classList.remove('on');};
 document.querySelectorAll('#periodTabs button[data-p]').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#periodTabs button[data-p]').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');renderRank();
