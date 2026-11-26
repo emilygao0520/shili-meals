@@ -270,10 +270,9 @@
     background:var(--card);border:1px solid var(--line);border-radius:18px;
     box-shadow:var(--shadow);padding:20px;position:relative;
   }
-  .rank-card h3{font-family:var(--hand);font-size:18px;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .rank-card h3{font-family:var(--hand);font-size:18px;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
   .rank-card h3::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--accent);}
   .rank-card.rest h3::before{background:var(--green);}
-  .rank-card p.sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
   .rank-item{display:flex;align-items:center;gap:10px;padding:9px 0;}
   .rank-no{
     width:26px;height:26px;border-radius:8px;background:#eef0f3;color:var(--ink-soft);
@@ -721,12 +720,10 @@
     <div class="rank-wrap">
       <div class="rank-card rest" data-k="rest" title="点击查看完整排行">
         <h3><span id="restTitle">饭店排行</span><span class="rank-more" id="moreRest"></span></h3>
-        <p class="sub" id="restSub">按用餐次数排序 · 光顾最多的地方</p>
         <div id="rankRest"></div>
       </div>
       <div class="rank-card" data-k="dish" title="点击查看完整排行">
         <h3><span id="dishTitle">菜品排行</span><span class="rank-more" id="moreDish"></span></h3>
-        <p class="sub" id="dishSub">按点单次数排序 · 最常出现在餐桌上的味道</p>
         <div id="rankDish"></div>
       </div>
     </div>
@@ -940,7 +937,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v48</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v49</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1745,12 +1742,6 @@ function renderRank(){
   const drinkOnly=mode==='drink', mealOnly=mode==='meal';
   document.getElementById('restTitle').textContent=drinkOnly?'饮品店排行':'饭店排行';
   document.getElementById('dishTitle').textContent=drinkOnly?'饮品排行':(mealOnly?'正餐菜品排行':'菜品排行');
-  document.getElementById('restSub').textContent=drinkOnly
-    ?'按购买次数排序 · 奶茶 / 咖啡 / 饮料 / 糖水（自动识别）'
-    :(mealOnly?'按用餐次数排序 · 已排除饮品':'按用餐次数排序 · 光顾最多的地方');
-  document.getElementById('dishSub').textContent=drinkOnly
-    ?'按点单次数排序 · 喝得最多的那一杯'
-    :(mealOnly?'按点单次数排序 · 已排除饮品':'按点单次数排序 · 最常出现在餐桌上的味道');
   const noteText=
     (drinkOnly?'已自动识别饮品记录（奶茶 / 咖啡 / 饮料 / 糖水 / 酒）':
      mealOnly?'只看正餐 · 已自动排除饮品（含奶茶 / 咖啡 / 糖水）':'')
