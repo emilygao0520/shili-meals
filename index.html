@@ -351,6 +351,37 @@
   /* ---------- 用餐排行（单一卡片 + 餐厅/菜品切换） ---------- */
   .rank-main{padding:20px;cursor:default;display:flex;flex-direction:column;}
   @media(min-width:900px){.rank-main{max-width:720px;margin:0 auto;}}
+  /* 高度自适应：放不下时由 fitRank() 逐级加紧凑类，保证 6 行一屏 */
+  #view-rank.tight .rank-main{padding:12px 14px 10px;}
+  #view-rank.tight .rank-head h3{font-size:18px;}
+  #view-rank.tight .kind-seg{margin:10px 0 7px;}
+  #view-rank.tight .kind-seg button{padding:7px 0;font-size:13px;}
+  #view-rank.tight .period-seg{margin-bottom:9px;}
+  #view-rank.tight .period-seg button{padding:6px 0;}
+  #view-rank.tight .rl-item{padding:9px 0 8px;}
+  #view-rank.tight .rl-bar{margin-top:6px;}
+  #view-rank.tight .rl-sub{margin-top:3px;}
+  #view-rank.tight .rank-all-btn{margin-top:8px;padding:8px 0;}
+  #view-rank.tighter .rank-main{padding:10px 12px 8px;}
+  #view-rank.tighter .rank-head h3{font-size:17px;}
+  #view-rank.tighter .kind-seg{margin:7px 0 5px;padding:3px;}
+  #view-rank.tighter .kind-seg button{padding:6px 0;font-size:12.5px;}
+  #view-rank.tighter .period-seg{margin-bottom:6px;padding:3px;}
+  #view-rank.tighter .period-seg button{padding:5px 0;font-size:11px;}
+  #view-rank.tighter .rank-main .seg button{padding:4px 8px;font-size:11px;}
+  #view-rank.tighter .drink-toggle{padding:5px 10px;font-size:11px;}
+  #view-rank.tighter .rl-item{padding:5px 0 4px;}
+  #view-rank.tighter .rl-no{width:24px;height:24px;font-size:11.5px;}
+  #view-rank.tighter .rl-no svg{width:13px;height:13px;}
+  #view-rank.tighter .rl-top b{font-size:13.5px;}
+  #view-rank.tighter .rl-bar{margin-top:3px;height:4px;}
+  #view-rank.tighter .rl-sub{margin-top:1px;font-size:10px;}
+  #view-rank.tighter .rank-all-btn{margin-top:5px;padding:6px 0;font-size:11px;}
+  /* 极矮屏：隐藏进度条保证 6 行仍在一屏 */
+  #view-rank.ultra .rl-bar{display:none;}
+  #view-rank.ultra .rl-item{padding:4px 0 3px;}
+  #view-rank.ultra .rl-no{width:22px;height:22px;}
+  #view-rank.ultra .rank-head h3{font-size:16px;}
   .rank-main:hover{transform:none;box-shadow:var(--shadow);}
   .rank-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
   .rank-head h3{font-family:var(--hand);font-size:22px;letter-spacing:2px;margin:0;}
@@ -1110,7 +1141,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v58</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v62</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1371,7 +1402,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   b.classList.add('on');
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
   document.getElementById('view-'+b.dataset.view).classList.add('on');
-  if(b.dataset.view==='rank')renderRank();
+  if(b.dataset.view==='rank'){renderRank();fitRank();}
   if(b.dataset.view==='circle')renderFeed();
   if(b.dataset.view==='cal')fitCal();
 });
@@ -1477,6 +1508,24 @@ function fitCal(){
   const h=Math.round(avail-card.getBoundingClientRect().top-2);
   card.style.height=(h>260?h:260)+'px';
 }
+/* 排行页一屏：内容（尤其菜品页多一行出处）超出可用高度时，逐级加紧凑类，保证不用下滑 */
+function fitRank(){
+  const sec=document.getElementById('view-rank');
+  if(!sec||sec.offsetParent===null)return;
+  sec.classList.remove('tight','tighter','ultra');
+  if(!matchMedia('(max-width:640px)').matches)return;
+  const card=sec.querySelector('.rank-main');
+  const m=document.querySelector('main');
+  const pb=parseFloat(getComputedStyle(m).paddingBottom)||0;
+  const avail=m.getBoundingClientRect().bottom-pb-sec.getBoundingClientRect().top;
+  if(!card||avail<=0)return;
+  if(card.getBoundingClientRect().height<=avail-2)return;
+  sec.classList.add('tight');
+  if(card.getBoundingClientRect().height<=avail-2)return;
+  sec.classList.add('tighter');
+  if(card.getBoundingClientRect().height<=avail-2)return;
+  sec.classList.add('ultra');
+}
 /* 统计卡是异步渲染的，高度会变；观察其尺寸变化后重算，避免首次加载算早了溢出 */
 const _statsEl=document.getElementById('stats');
 if(_statsEl&&window.ResizeObserver)new ResizeObserver(fitCal).observe(_statsEl);
@@ -1506,6 +1555,7 @@ addEventListener('resize',enforceWidth);
 let fitTimer=null;
 addEventListener('resize',()=>{
   fitCal();
+  fitRank();
   clearTimeout(fitTimer);
   fitTimer=setTimeout(()=>{const g=document.getElementById('calGrid');if(g)fitCellTexts(g);},180);
 });
@@ -2024,6 +2074,7 @@ function renderRank(){
     }
   }
   document.getElementById('filterNote').innerHTML=noteText+(hint?(noteText?' · ':'')+hint:'');
+  fitRank();
 }
 /* 餐厅 / 菜品 切换 */
 document.querySelectorAll('#kindSeg button').forEach(b=>b.onclick=()=>{
