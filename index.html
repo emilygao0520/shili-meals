@@ -192,13 +192,70 @@
   .dv-empty b{display:block;font-family:var(--hand);font-size:17px;color:var(--ink);margin-bottom:8px;letter-spacing:1px;}
   .dv-empty p{font-size:12.5px;line-height:1.8;}
 
-  /* 主页「清空记录」入口：低调文字按钮，位于日历卡标题栏 */
+  /* 主页「年览 / 清空记录」入口：低调文字按钮，位于日历卡标题栏 */
+  .cal-tools{margin-left:auto;display:flex;align-items:center;gap:2px;flex:none;}
   .clear-link{
-    border:none;background:none;padding:3px 7px;margin-left:auto;border-radius:7px;
+    border:none;background:none;padding:3px 7px;border-radius:7px;
     font-size:11px;color:#c0c4cb;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:.15s;
   }
   .clear-link:hover{color:var(--pink);background:var(--pink-soft);}
+  #yearBtn{
+    border:1px solid #e9ebef;background:#fff;border-radius:8px;padding:3px 8px;color:#8b8f99;
+  }
+  #yearBtn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
   .cal-head .cal-nav{padding-left:9px;border-left:1px solid #e9ebef;}
+
+  /* ---------- 全年总览 ---------- */
+  #yearOverlay{padding:14px;}
+  #yearOverlay .year-modal{
+    width:100%;max-width:1040px;max-height:calc(100vh - 28px);padding:18px 18px 10px;
+    display:flex;flex-direction:column;background:var(--paper);
+  }
+  .year-head{flex:none;}
+  .year-nav{display:flex;align-items:center;gap:8px;}
+  .year-nav button{
+    width:30px;height:30px;border-radius:50%;border:1px solid #e6e0d6;background:#fff;
+    color:#8b8f99;font-size:15px;cursor:pointer;flex:none;line-height:1;
+  }
+  .year-nav button:hover{border-color:var(--accent);color:var(--accent);}
+  .year-title{font-family:var(--hand);font-size:24px;letter-spacing:2px;margin:0 2px;}
+  #closeYear{margin-left:auto;border-radius:9px;}
+  .year-sub{font-size:12px;color:var(--ink-soft);margin:6px 0 12px;letter-spacing:.5px;}
+  .year-grid{
+    flex:1;min-height:0;overflow-y:auto;display:grid;gap:12px;
+    grid-template-columns:repeat(2,1fr);padding:2px 2px 8px;
+  }
+  @media(min-width:700px){.year-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(min-width:1000px){.year-grid{grid-template-columns:repeat(4,1fr);}}
+  .ym-card{
+    background:#fff;border:1px solid #eceef2;border-radius:14px;padding:10px 10px 12px;
+    box-shadow:0 2px 8px rgba(44,46,54,.04);
+  }
+  .ym-card.has{background:#fffdfa;border-color:rgba(217,99,94,.28);}
+  .ym-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;}
+  .ym-name{font-family:var(--hand);font-size:15px;letter-spacing:1px;color:#4c515a;}
+  .ym-count{font-size:10.5px;color:var(--accent);letter-spacing:.3px;}
+  .ym-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .ym-day{
+    aspect-ratio:1;border-radius:5px;background:#f2ece5;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
+    transition:.12s;
+  }
+  .ym-day.blank{background:transparent;cursor:default;}
+  .ym-day img{width:74%;height:74%;object-fit:cover;border-radius:3px;display:block;}
+  .ym-day.h1{background:#f5d9cb;}
+  .ym-day.h2{background:#e8b39a;}
+  .ym-day.h3{background:#d2805f;}
+  .ym-day:hover:not(.blank){transform:scale(1.12);box-shadow:0 2px 6px rgba(44,46,54,.16);}
+  .year-legend{
+    flex:none;display:flex;align-items:center;justify-content:flex-end;gap:5px;
+    font-size:11px;color:var(--ink-soft);padding:6px 4px 2px;
+  }
+  .year-legend i{width:14px;height:14px;border-radius:4px;display:block;}
+  .year-legend i.h0{background:#f2ece5;}
+  .year-legend i.h1{background:#f5d9cb;}
+  .year-legend i.h2{background:#e8b39a;}
+  .year-legend i.h3{background:#d2805f;}
 
   /* 清空确认弹窗（二次验证） */
   #clearOverlay{align-items:center;padding:16px;}
@@ -638,6 +695,14 @@
   .drink-toggle{padding:6px 12px;font-size:11.5px;}
   .filter-note{font-size:11px;}
   .modal{padding:18px 14px;}
+  /* 全年总览 */
+  #yearOverlay{padding:10px;}
+  .year-modal{max-height:calc(100dvh - 20px);padding:14px 12px 6px;}
+  .year-grid{gap:8px;}
+  .ym-card{padding:8px 8px 9px;border-radius:12px;}
+  .ym-days{gap:2px;}
+  .year-title{font-size:21px;}
+  .ym-name{font-size:14px;}
   /* 日记手账展示页 */
   #dayOverlay .modal{max-height:calc(100dvh - 28px);padding:0;}
   .day-top{padding:16px 14px 10px;}
@@ -685,7 +750,10 @@
     <div class="cal-card">
       <div class="cal-head">
         <div class="cal-title" id="calTitle"></div>
-        <button class="clear-link" id="clearAll" title="清空全部记录">清空记录</button>
+        <div class="cal-tools">
+          <button class="clear-link" id="yearBtn" title="全年总览">年览</button>
+          <button class="clear-link" id="clearAll" title="清空全部记录">清空记录</button>
+        </div>
         <div class="cal-nav">
           <button id="prevM" title="上个月">‹</button>
           <button id="todayBtn" title="回到本月" style="width:auto;padding:0 14px;font-size:13px;">今天</button>
@@ -754,6 +822,23 @@
     </div>
   </section>
 </main>
+
+<!-- ========== 全年总览（热力图） ========== -->
+<div class="overlay" id="yearOverlay">
+  <div class="modal year-modal">
+    <div class="year-head">
+      <div class="year-nav">
+        <button id="yearPrev" title="上一年">‹</button>
+        <div class="year-title" id="yearTitle"></div>
+        <button id="yearNext" title="下一年">›</button>
+        <button class="close-x" id="closeYear">✕</button>
+      </div>
+      <div class="year-sub" id="yearSub"></div>
+    </div>
+    <div class="year-grid" id="yearGrid"></div>
+    <div class="year-legend">少<i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i>多</div>
+  </div>
+</div>
 
 <!-- ========== 日记手账展示页（只读，右上角编辑） ========== -->
 <div class="overlay" id="dayOverlay">
@@ -937,7 +1022,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v49</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v52</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1340,6 +1425,59 @@ fitCal();
 document.getElementById('prevM').onclick=()=>{cur.setMonth(cur.getMonth()-1);renderCal();};
 document.getElementById('nextM').onclick=()=>{cur.setMonth(cur.getMonth()+1);renderCal();};
 document.getElementById('todayBtn').onclick=()=>{cur=new Date();cur.setDate(1);renderCal();};
+
+/* ================= 全年总览（热力图 + 缩略图） ================= */
+let yearCursor=new Date().getFullYear();
+const MONTH_NAMES=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+function renderYear(){
+  const Y=yearCursor,prefix=Y+'-';
+  document.getElementById('yearTitle').textContent=Y+' 年';
+  const yRecs=db.filter(r=>r.date.startsWith(prefix));
+  const yDays=new Set(yRecs.map(r=>r.date)).size;
+  document.getElementById('yearSub').textContent=`全年 ${yDays} 天 · ${yRecs.length} 餐`;
+  const byDate={};
+  yRecs.forEach(r=>{(byDate[r.date]=byDate[r.date]||[]).push(r);});
+  document.getElementById('yearGrid').innerHTML=MONTH_NAMES.map((nm,mi)=>{
+    const pad=String(mi+1).padStart(2,'0');
+    const first=new Date(Y,mi,1).getDay(),cnt=new Date(Y,mi+1,0).getDate();
+    let mMeals=0,cells='';
+    for(let i=0;i<first;i++)cells+='<div class="ym-day blank"></div>';
+    for(let d=1;d<=cnt;d++){
+      const ds=`${Y}-${pad}-${String(d).padStart(2,'0')}`;
+      const rs=byDate[ds]||[];
+      mMeals+=rs.length;
+      const lvl=Math.min(3,rs.length);
+      const img=(rs.find(x=>x.img)||{}).img;
+      cells+=`<div class="ym-day h${lvl}" data-d="${ds}" title="${ds}${rs.length?' · '+rs.length+' 餐':' · 无记录'}">${img?`<img src="${img}" alt="">`:''}</div>`;
+    }
+    return `<div class="ym-card${mMeals?' has':''}">
+      <div class="ym-top"><span class="ym-name">${nm}</span>${mMeals?`<span class="ym-count">${mMeals} 餐</span>`:''}</div>
+      <div class="ym-days">${cells}</div>
+    </div>`;
+  }).join('');
+}
+function openYearView(){
+  yearCursor=new Date().getFullYear();
+  renderYear();
+  document.getElementById('yearOverlay').classList.add('on');
+  document.getElementById('yearGrid').scrollTop=0;
+}
+document.getElementById('yearBtn').onclick=openYearView;
+document.getElementById('closeYear').onclick=()=>document.getElementById('yearOverlay').classList.remove('on');
+document.getElementById('yearOverlay').onclick=e=>{if(e.target.id==='yearOverlay')e.currentTarget.classList.remove('on');};
+document.getElementById('yearPrev').onclick=()=>{yearCursor--;renderYear();};
+document.getElementById('yearNext').onclick=()=>{yearCursor++;renderYear();};
+/* 点格子 → 回到该月并打开当天手账 */
+document.getElementById('yearGrid').addEventListener('click',e=>{
+  const c=e.target.closest('.ym-day[data-d]');
+  if(!c||c.classList.contains('blank'))return;
+  const ds=c.dataset.d;
+  document.getElementById('yearOverlay').classList.remove('on');
+  const dt=new Date(ds+'T00:00:00');
+  cur=new Date(dt.getFullYear(),dt.getMonth(),1);
+  renderCal();
+  openDayView(ds);
+});
 
 /* ================= 日记手账展示页（只读） ================= */
 let dayViewDate=null, dayViewReturn=false;
