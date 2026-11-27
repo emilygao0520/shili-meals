@@ -101,15 +101,17 @@
     background:var(--card);border:1px solid var(--line);border-radius:18px;
     box-shadow:var(--shadow);padding:22px;position:relative;
   }
-  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-  .cal-title{font-family:var(--hand);font-size:22px;}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;}
+  .cal-title{font-family:var(--hand);font-size:22px;white-space:nowrap;letter-spacing:.5px;}
+  .cal-title em{font-style:normal;font-size:.68em;color:var(--ink-soft);letter-spacing:0;margin-right:6px;}
   .cal-title small{font-size:13px;color:var(--ink-soft);margin-left:10px;font-family:inherit;}
-  .cal-nav{display:flex;gap:8px;}
+  .cal-nav{display:flex;gap:8px;flex:none;}
   .cal-nav button{
     width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;
-    cursor:pointer;font-size:15px;color:var(--ink-soft);transition:.15s;
+    cursor:pointer;font-size:15px;color:var(--ink-soft);transition:.15s;white-space:nowrap;
   }
   .cal-nav button:hover{border-color:var(--accent);color:var(--accent);}
+  .cal-nav button#todayBtn{width:auto;padding:0 14px;font-size:13px;}
   .cal-week,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
   .cal-week div{text-align:center;font-size:12px;color:var(--ink-soft);padding-bottom:4px;}
   .cal-week div:first-child{color:var(--pink);}
@@ -759,12 +761,14 @@
   #view-cal .stat-lines b{font-size:16px;}
   #view-cal .stat-lines i{font-size:9.5px;}
   #view-cal .cal-card{width:100%!important;max-width:100%!important;box-sizing:border-box;display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:9px 8px 8px;border-radius:14px;}
-  #view-cal .cal-head{margin-bottom:5px;}
+  #view-cal .cal-head{margin-bottom:5px;gap:5px;}
   #view-cal .cal-title{font-size:15px;}
+  #view-cal .cal-title em{font-size:.8em;margin-right:3px;}
   #view-cal .cal-title small{display:none;}
-  #view-cal .cal-nav{gap:5px;}
-  #view-cal .cal-nav button{width:26px;height:26px;font-size:13px;border-radius:8px;}
-  #view-cal .cal-nav button#todayBtn{height:26px;font-size:11px;padding:0 9px;}
+  #view-cal .cal-tools .clear-link{font-size:10px;padding:3px 5px;letter-spacing:0;}
+  #view-cal .cal-nav{gap:4px;}
+  #view-cal .cal-nav button{width:25px;height:25px;font-size:12px;border-radius:8px;}
+  #view-cal .cal-nav button#todayBtn{width:auto;height:25px;font-size:11px;padding:0 9px;}
   #view-cal .cal-week{gap:3px;}
   #view-cal .cal-week div{font-size:10px;padding-bottom:2px;}
   #view-cal .cal-grid{flex:1 1 0;min-height:0;grid-auto-rows:1fr;gap:3px;}
@@ -871,7 +875,7 @@
         </div>
         <div class="cal-nav">
           <button id="prevM" title="上个月">‹</button>
-          <button id="todayBtn" title="回到本月" style="width:auto;padding:0 14px;font-size:13px;">今天</button>
+          <button id="todayBtn" title="回到本月">今天</button>
           <button id="nextM" title="下个月">›</button>
         </div>
       </div>
@@ -1141,7 +1145,7 @@
 
 <div class="toast" id="toast"></div>
 
-<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v67</span><span class="ver" id="diagTag"></span></footer>
+<footer>食在手，记在心 —— 一日三餐，皆值得被记录<span class="ver" id="verTag">v69</span><span class="ver" id="diagTag"></span></footer>
 
 <script>
 /* ================= 云端配置（Supabase） ================= */
@@ -1460,7 +1464,7 @@ function fitCellTexts(root){
 function renderCal(){
   const y=cur.getFullYear(),m=cur.getMonth();
   document.getElementById('calTitle').innerHTML=
-    `${y} 年 ${m+1} 月<small>把日子过成值得收藏的样子</small>`;
+    `<em>${y} 年</em>${m+1} 月<small>把日子过成值得收藏的样子</small>`;
   const grid=document.getElementById('calGrid');
   grid.innerHTML='';
   const first=new Date(y,m,1).getDay();
